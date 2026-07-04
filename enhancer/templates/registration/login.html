@@ -1,48 +1,59 @@
 {% extends "enhancer/base.html" %}
-{% block title %}Sign in | Lumina{% endblock %}
+{% block title %}Sign In | Lumina{% endblock %}
 {% block content %}
-<section class="section">
-  <div class="section-header">
-    <div class="eyebrow">Welcome back</div>
-    <h2 class="title">Sign in to Lumina</h2>
-    <p class="subtitle">Enhance images with AI-powered precision.</p>
+
+<div style="max-width:420px;margin:60px auto;padding:40px 32px;background:var(--bg-card);border:1px solid var(--border-color);border-radius:var(--radius-lg);">
+  <div style="text-align:center;margin-bottom:32px;">
+    <div style="width:56px;height:56px;border-radius:var(--radius-md);background:var(--accent-gradient);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:24px;font-weight:700;color:#fff;box-shadow:0 4px 16px rgba(108,92,231,0.3);">L</div>
+    <h1 style="font-size:24px;font-weight:700;margin-bottom:4px;">Welcome back</h1>
+    <p style="color:var(--text-secondary);font-size:14px;">Sign in to access your enhanced images</p>
   </div>
 
-  <form method="post" style="max-width:520px;margin:0 auto;">
+  {% if form.errors %}
+    <div style="padding:12px 16px;border-radius:var(--radius-sm);background:rgba(253,121,168,0.08);border:1px solid rgba(253,121,168,0.15);color:#fd79a8;margin-bottom:16px;font-size:14px;">
+      Invalid username or password. Please try again.
+    </div>
+  {% endif %}
+
+  <form method="post">
     {% csrf_token %}
-
-    {% if form.errors %}
-      <div style="padding:12px 16px;border-radius:var(--radius-sm);background:rgba(253,121,168,0.08);border:1px solid rgba(253,121,168,0.25);color:#fd79a8;margin-bottom:12px;">
-        Invalid username or password.
-      </div>
-    {% endif %}
-
-    <div class="form-grid" style="display:grid;gap:12px;">
-      {% for field in form %}
-        <div class="field" style="display:grid;gap:6px;">
-          <label style="font-size:13px;color:var(--text-secondary);font-weight:600;">{{ field.label }}</label>
-          {{ field }}
-          {% if field.errors %}
-            <div style="color:#fd79a8;font-size:13px;">{{ field.errors|join:", " }}</div>
-          {% endif %}
-        </div>
-      {% endfor %}
+    
+    <div class="form-group">
+      <label class="form-label">Username</label>
+      <input class="form-input" type="text" name="username" placeholder="Enter your username" required autofocus>
     </div>
 
-    <button type="submit" class="btn btn-primary" style="margin-top:16px;width:100%;">
-      Sign in
+    <div class="form-group">
+      <label class="form-label">Password</label>
+      <input class="form-input" type="password" name="password" placeholder="Enter your password" required>
+    </div>
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;font-size:13px;">
+      <label style="display:flex;align-items:center;gap:6px;color:var(--text-secondary);font-weight:400;cursor:pointer;">
+        <input type="checkbox" name="remember" style="accent-color:#6c5ce7;width:16px;height:16px;cursor:pointer;">
+        Remember me
+      </label>
+      <a href="#" style="color:var(--text-accent);text-decoration:none;">Forgot password?</a>
+    </div>
+
+    <button type="submit" class="btn btn-primary btn-block">
+      ✦ Sign In
     </button>
 
-    {% if form.fields.password.help_text %}
-      <div style="margin-top:10px;color:var(--text-muted);font-size:12px;">
-        {{ form.fields.password.help_text }}
-      </div>
-    {% endif %}
-
-    <div style="margin-top:12px;text-align:center;color:var(--text-muted);font-size:13px;">
-      Don’t have an account?
-      <a href="{% url 'signup' %}" style="color:var(--text-secondary);text-decoration:none;font-weight:600;">Sign up</a>
+    <div style="text-align:center;margin-top:16px;font-size:14px;color:var(--text-secondary);">
+      Don't have an account? 
+      <a href="{% url 'enhancer:signup' %}" style="color:var(--text-accent);text-decoration:none;font-weight:600;">Sign up</a>
     </div>
   </form>
-</section>
+
+  <div style="margin-top:24px;padding-top:20px;border-top:1px solid var(--border-color);">
+    <div style="text-align:center;font-size:12px;color:var(--text-muted);">
+      By signing in, you agree to our 
+      <a href="#" style="color:var(--text-secondary);text-decoration:none;">Terms</a> 
+      and 
+      <a href="#" style="color:var(--text-secondary);text-decoration:none;">Privacy Policy</a>
+    </div>
+  </div>
+</div>
+
 {% endblock %}

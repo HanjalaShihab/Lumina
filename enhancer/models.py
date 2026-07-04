@@ -1,7 +1,13 @@
+from django.conf import settings
 from django.db import models
 
 
 class EnhancementJob(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="enhancements",
+    )
     MODE_MANUAL = "manual"
     MODE_AI = "ai"
     MODE_BATCH = "batch"

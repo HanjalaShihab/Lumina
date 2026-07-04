@@ -50,14 +50,12 @@
           <a href="{% url 'logout' %}" class="btn-nav" style="background:transparent;border:1px solid var(--border-color);box-shadow:none;">Sign out</a>
         {% else %}
           <a href="{% url 'login' %}" class="btn-nav" style="background:transparent;border:1px solid var(--border-color);box-shadow:none;">Sign in</a>
+          <a href="{% url 'enhancer:signup' %}" class="btn-nav">Get Started</a>
         {% endif %}
-        <a href="{% url 'enhancer:upgrade' %}" class="btn-nav">Get Tokens</a>
+        <a href="{% url 'enhancer:upgrade' %}" class="btn-nav" style="background:rgba(108,92,231,0.1);border:1px solid rgba(108,92,231,0.2);box-shadow:none;color:var(--text-accent);">Get Tokens</a>
       </div>
     </div>
   </header>
-
-  <!-- CSRF token for JS (used by history delete endpoint) -->
-  <input type="hidden" name="csrfmiddlewaretoken" value="{% csrf_token %}">
 
   <!-- Main -->
   <main>

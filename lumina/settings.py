@@ -1,6 +1,5 @@
 from pathlib import Path
 
-
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = "django-insecure-lumina-local-dev-key-change-before-production"
@@ -32,7 +31,10 @@ ROOT_URLCONF = "lumina.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [
+            BASE_DIR / "templates",
+            BASE_DIR / "enhancer" / "registration",  # Add this
+        ],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -75,5 +77,38 @@ MEDIA_ROOT = BASE_DIR / "media"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024
-DATA_UPLOAD_MAX_MEMORY_SIZE = 25 * 1024 * 1024
+# File upload settings
+FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10MB
+DATA_UPLOAD_MAX_MEMORY_SIZE = 25 * 1024 * 1024  # 25MB
+
+# ============================================
+# AUTHENTICATION SETTINGS - ADD THESE
+# ============================================
+
+# Login URLs
+LOGIN_URL = 'enhancer:login'
+LOGIN_REDIRECT_URL = 'enhancer:home'
+LOGOUT_REDIRECT_URL = 'enhancer:home'
+
+# Session settings (optional but recommended)
+SESSION_COOKIE_AGE = 1209600  # 2 weeks in seconds
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+
+# ============================================
+# CSRF SETTINGS (for AJAX requests)
+# ============================================
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+]
+
+# ============================================
+# CACHING (optional - for production)
+# ============================================
+
+# CACHES = {
+#     'default': {
+#         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+#     }
+# }
