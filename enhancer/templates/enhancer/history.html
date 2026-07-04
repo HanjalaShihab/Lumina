@@ -1,156 +1,313 @@
 {% extends "enhancer/base.html" %}
 {% block title %}History | Lumina{% endblock %}
 {% block content %}
-<section class="history-head">
-  <div class="section-heading" data-reveal>
-    <p class="eyebrow">
-      <span class="glow-dot"></span>
-      Saved work
-    </p>
-    <h1>
-      {% if focused %}
-        {{ focused.title|default:"Enhancement" }}
-      {% else %}
-        <span class="gradient-text">History</span>
-        <span class="version-badge">{{ jobs|length }}</span>
-      {% endif %}
-    </h1>
-    <p>Neon timeline of every render—compare originals, enhanced outputs, and model notes instantly.</p>
+
+<div style="padding:24px 0;">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:16px;">
+    <div>
+      <h1 style="font-size:32px;font-weight:700;margin-bottom:4px;">
+        {% if focused %}
+          {{ focused.title|default:"Enhancement Detail" }}
+        {% else %}
+          Enhancement History
+        {% endif %}
+      </h1>
+      <p style="color:var(--text-secondary);font-size:16px;">
+        {% if focused %}
+          View and compare this specific enhancement
+        {% else %}
+          All your enhanced images in one place
+        {% endif %}
+      </p>
+    </div>
+    {% if page_obj %}
+      <div style="display:flex;gap:8px;">
+        <span style="padding:4px 14px;border-radius:999px;background:var(--bg-card);border:1px solid var(--border-color);font-size:12px;color:var(--text-muted);">{{ page_obj.paginator.count }} items</span>
+      </div>
+    {% endif %}
   </div>
 
-  <div class="history-filters" data-reveal>
+  <!-- Info Cards -->
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;">
+    <div class="info-card">
+      <span class="label">📊 How it works</span>
+      <div class="content">Every enhancement saves a snapshot with model notes for easy comparison and reproducibility.</div>
+      <div class="stats"><span>Auto-saved</span><span>Version control</span></div>
+    </div>
+    <div class="info-card">
+      <span class="label">🌟 Quality</span>
+      <div class="content">Notes include mode + timestamp, helping you reproduce results across similar scenes.</div>
+      <div class="stats"><span>Reproducible</span><span>Consistent output</span></div>
+    </div>
+    <div class="info-card">
+      <span class="label">📦 What you get</span>
+      <div class="content">Download enhanced outputs anytime with side-by-side comparison for quality checking.</div>
+      <div class="stats"><span>Unlimited storage</span><span>Organized timeline</span></div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  {% if page_obj %}
+  <div class="history-filters">
     <button class="filter-btn active" data-filter="all">All</button>
-    <button class="filter-btn" data-filter="ai">AI Enhanced</button>
-    <button class="filter-btn" data-filter="manual">Manual</button>
-    <button class="filter-btn" data-filter="batch">Batch</button>
+    <button class="filter-btn" data-filter="ai">🤖 AI</button>
+    <button class="filter-btn" data-filter="manual">🎛️ Manual</button>
+    <button class="filter-btn" data-filter="batch">📁 Batch</button>
     <div class="search-box">
+      <span class="icon">🔍</span>
       <input type="text" placeholder="Search history..." id="historySearch">
-      <span class="search-icon">🔍</span>
     </div>
   </div>
-</section>
+  {% endif %}
 
-<section class="info-band">
-  <article class="info-card" data-reveal>
-    <span class="info-head">📊 How it works</span>
-    <p>
-      Every enhancement saves a "Model notes" snapshot—so you can compare what changed and why for each image.
-    </p>
-    <div class="info-stats">
-      <span>Auto-saved</span>
-      <span>Version control</span>
-    </div>
-  </article>
-  <article class="info-card" data-reveal>
-    <span class="info-head">🌟 Quality</span>
-    <p>
-      Notes include mode + timestamp, helping you reproduce results across similar lighting and scenes.
-    </p>
-    <div class="info-stats">
-      <span>Reproducible</span>
-      <span>Consistent output</span>
-    </div>
-  </article>
-  <article class="info-card" data-reveal>
-    <span class="info-head">📦 What you get</span>
-    <p>
-      Download enhanced outputs anytime—your renders stay organized with a premium side-by-side comparison.
-    </p>
-    <div class="info-stats">
-      <span>Unlimited storage</span>
-      <span>Organized timeline</span>
-    </div>
-  </article>
-</section>
-
-{% if jobs %}
-<section class="history-list">
-  {% for job in jobs %}
-    <article class="history-item" data-reveal data-mode="{{ job.mode|lower }}">
-      <div class="comparison">
-        <div class="comparison-original">
-          <span>
-            <span class="comparison-icon">📷</span>
-            Original
-          </span>
-          <img src="{{ job.original.url }}" alt="Original image" loading="lazy">
-          <div class="comparison-meta">
-            <span class="meta-label">Size</span>
-            <span>{{ job.original.size|filesizeformat }}</span>
-          </div>
-        </div>
-        {% if job.enhanced %}
-          <div class="comparison-enhanced">
-            <span>
-              <span class="comparison-icon">✨</span>
-              Enhanced
-              <span class="comparison-badge">v{{ job.version|default:"1.0" }}</span>
+  <!-- History List -->
+  {% if page_obj %}
+    {% for job in page_obj %}
+      <div class="history-item" data-mode="{{ job.get_mode_display|lower }}">
+        <div class="comparison">
+          <div class="comparison-original">
+            <span class="label">
+              <span class="comparison-icon">📷</span>
+              Original
             </span>
-            <img src="{{ job.enhanced.url }}" alt="Enhanced image" loading="lazy">
+            <img src="{{ job.original.url }}" alt="Original image" loading="lazy">
             <div class="comparison-meta">
-              <span class="meta-label">Mode</span>
-              <span class="mode-tag">{{ job.get_mode_display }}</span>
+              <span class="meta-label">Size</span>
+              <span>{{ job.original.size|filesizeformat|default:"N/A" }}</span>
             </div>
           </div>
-        {% endif %}
-      </div>
-
-      <div class="meta">
-        <div class="meta-header">
-          <h2>{{ job.title|default:"Untitled" }}</h2>
-          <span class="meta-date">{{ job.created_at|date:"M j, Y g:i A" }}</span>
-        </div>
-
-        {% if job.notes %}
-          <div class="notes-block">
-            <span class="notes-icon">📝</span>
-            <p>{{ job.notes }}</p>
-          </div>
-        {% else %}
-          <p class="muted" style="font-family: var(--mono);">
-            No model notes for this run.
-          </p>
-        {% endif %}
-
-        <div class="meta-actions">
           {% if job.enhanced %}
-            <a class="button-link" href="{{ job.enhanced.url }}" download>
-              <span class="btn-icon">⬇️</span>
-              Download
-            </a>
-            {% if not focused %}
-              <a class="button-link" href="{% url 'enhancer:detail' job.pk %}">
-                <span class="btn-icon">👁️</span>
-                Open detail
-              </a>
-            {% endif %}
-            <button class="button-link" onclick="compareImages('{{ job.original.url }}', '{{ job.enhanced.url }}')">
-              <span class="btn-icon">🔄</span>
-              Compare
-            </button>
+            <div class="comparison-enhanced">
+              <span class="label">
+                <span class="comparison-icon">✨</span>
+                Enhanced
+                <span class="comparison-badge">v{{ job.version|default:"1.0" }}</span>
+              </span>
+              <img src="{{ job.enhanced.url }}" alt="Enhanced image" loading="lazy">
+              <div class="comparison-meta">
+                <span class="meta-label">Mode</span>
+                <span class="mode-tag">{{ job.get_mode_display }}</span>
+              </div>
+            </div>
+          {% else %}
+            <div class="comparison-enhanced">
+              <span class="label">
+                <span class="comparison-icon">⏳</span>
+                Processing
+              </span>
+              <div style="width:100%;aspect-ratio:16/10;background:var(--bg-input);border-radius:var(--radius-sm);border:1px solid var(--border-color);display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:14px;">
+                Awaiting enhancement
+              </div>
+            </div>
           {% endif %}
         </div>
+
+        <div class="meta">
+          <div class="meta-header">
+            <div class="title">{{ job.title|default:"Untitled" }}</div>
+            <div class="date">{{ job.created_at|date:"M j, Y g:i A" }}</div>
+          </div>
+
+          {% if job.notes %}
+            <div class="notes-block">
+              <span class="notes-icon">📝</span>
+              <div>{{ job.notes }}</div>
+            </div>
+          {% else %}
+            <div style="font-size:13px;color:var(--text-muted);padding:4px 0;">No model notes for this run.</div>
+          {% endif %}
+
+          <div class="meta-actions">
+            {% if job.enhanced %}
+              <a href="{{ job.enhanced.url }}" download class="btn btn-primary" style="padding:6px 16px;font-size:12px;text-decoration:none;">
+                ⬇ Download
+              </a>
+            {% endif %}
+            <button class="btn btn-secondary" onclick="toggleComparison(this, '{{ job.original.url }}', '{{ job.enhanced.url|default:'' }}')" style="padding:6px 16px;font-size:12px;cursor:pointer;">
+              🔄 Compare
+            </button>
+            <button class="btn btn-secondary" onclick="deleteJob({{ job.id }})" style="padding:6px 16px;font-size:12px;cursor:pointer;color:#fd79a8;border-color:rgba(253,121,168,0.2);">
+              🗑️ Delete
+            </button>
+          </div>
+        </div>
       </div>
-    </article>
-  {% endfor %}
-</section>
+    {% endfor %}
 
-<div class="history-pagination" data-reveal>
-  <button class="pagination-btn" disabled>← Previous</button>
-  <span class="pagination-info">Page 1 of 1</span>
-  <button class="pagination-btn" disabled>Next →</button>
+    <!-- Pagination -->
+    {% if page_obj.paginator.num_pages > 1 %}
+    <div class="history-pagination">
+      {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}" class="pagination-btn" style="text-decoration:none;">← Previous</a>
+      {% else %}
+        <button class="pagination-btn" disabled>← Previous</button>
+      {% endif %}
+      
+      <span class="pagination-info">
+        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+      </span>
+      
+      {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}" class="pagination-btn" style="text-decoration:none;">Next →</a>
+      {% else %}
+        <button class="pagination-btn" disabled>Next →</button>
+      {% endif %}
+    </div>
+    {% endif %}
+
+  {% else %}
+    <!-- Empty State -->
+    <div class="empty-state" style="padding:60px 20px;text-align:center;background:var(--bg-card);border:1px solid var(--border-color);border-radius:var(--radius-lg);">
+      <span style="font-size:48px;display:block;margin-bottom:12px;opacity:0.3;">📭</span>
+      <div style="font-size:18px;font-weight:600;color:var(--text-secondary);">No enhanced images yet</div>
+      <div style="color:var(--text-muted);font-size:14px;margin-top:4px;">Upload your first image to get started</div>
+      <div style="display:flex;gap:12px;justify-content:center;margin-top:16px;flex-wrap:wrap;">
+        <a href="{% url 'enhancer:ai_enhancer' %}" class="btn btn-primary" style="text-decoration:none;">✦ AI Enhance</a>
+        <a href="{% url 'enhancer:manual' %}" class="btn btn-secondary" style="text-decoration:none;">🎛️ Manual Controls</a>
+      </div>
+    </div>
+  {% endif %}
 </div>
 
-{% else %}
-<div class="empty-state" data-reveal>
-  <div class="empty-content">
-    <span class="empty-icon">📭</span>
-    <span>No enhanced images yet.</span>
-    <span class="empty-hint">Upload an image on the Home page to generate your first neon render.</span>
-    <a href="{% url 'enhancer:home' %}" class="primary" style="margin-top: 14px; display: inline-block; text-decoration: none;">
-      Start enhancing →
-    </a>
-  </div>
-</div>
-{% endif %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Filter functionality
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+      
+      const filter = this.dataset.filter;
+      document.querySelectorAll('.history-item').forEach(item => {
+        const mode = item.dataset.mode || '';
+        if (filter === 'all' || mode.includes(filter) || mode.toLowerCase() === filter) {
+          item.style.display = 'block';
+        } else {
+          item.style.display = 'none';
+        }
+      });
+    });
+  });
+
+  // Search functionality
+  const searchInput = document.getElementById('historySearch');
+  if (searchInput) {
+    searchInput.addEventListener('input', function() {
+      const query = this.value.toLowerCase().trim();
+      document.querySelectorAll('.history-item').forEach(item => {
+        const title = item.querySelector('.meta-header .title')?.textContent?.toLowerCase() || '';
+        const notes = item.querySelector('.notes-block div')?.textContent?.toLowerCase() || '';
+        const date = item.querySelector('.meta-header .date')?.textContent?.toLowerCase() || '';
+        
+        if (!query || title.includes(query) || notes.includes(query) || date.includes(query)) {
+          item.style.display = 'block';
+        } else {
+          item.style.display = 'none';
+        }
+      });
+    });
+  }
+});
+
+// Compare function
+function toggleComparison(btn, original, enhanced) {
+  if (!enhanced) {
+    alert('This image has not been enhanced yet. Please wait for processing.');
+    return;
+  }
+  
+  const item = btn.closest('.history-item');
+  const existingCompare = item.querySelector('.comparison-expanded');
+  
+  if (existingCompare) {
+    existingCompare.remove();
+    btn.textContent = '🔄 Compare';
+    return;
+  }
+  
+  const compareDiv = document.createElement('div');
+  compareDiv.className = 'comparison-expanded';
+  compareDiv.style.cssText = `
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border-color);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    animation: fadeIn 0.3s ease;
+  `;
+  
+  compareDiv.innerHTML = `
+    <div>
+      <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">📷 Original</div>
+      <img src="${original}" style="width:100%;border-radius:var(--radius-sm);border:1px solid var(--border-color);">
+    </div>
+    <div>
+      <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">✨ Enhanced</div>
+      <img src="${enhanced}" style="width:100%;border-radius:var(--radius-sm);border:1px solid var(--border-color);">
+    </div>
+  `;
+  
+  item.querySelector('.meta').appendChild(compareDiv);
+  btn.textContent = '🔄 Hide Compare';
+}
+
+// Delete function
+function deleteJob(id) {
+  if (confirm('Are you sure you want to delete this enhancement?')) {
+    const csrf = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+    fetch(`/enhancer/delete/${id}/`, {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': csrf || '',
+        'Content-Type': 'application/json',
+      },
+      credentials: 'same-origin'
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        const item = document.querySelector(`.history-item:has([onclick*="deleteJob(${id})"])`);
+        if (item) {
+          item.style.transition = 'all 0.3s ease';
+          item.style.opacity = '0';
+          item.style.transform = 'translateX(-20px)';
+          setTimeout(() => item.remove(), 300);
+        }
+        // Show a subtle success message
+        const msg = document.createElement('div');
+        msg.style.cssText = `
+          padding: 12px 16px;
+          border-radius: var(--radius-sm);
+          background: rgba(0,230,118,0.08);
+          border: 1px solid rgba(0,230,118,0.15);
+          color: #00e676;
+          margin: 16px 0;
+          animation: fadeIn 0.3s ease;
+        `;
+        msg.textContent = '✅ Enhancement deleted successfully';
+        document.querySelector('.page-surface').prepend(msg);
+        setTimeout(() => msg.remove(), 3000);
+      } else {
+        alert('Error deleting enhancement. Please try again.');
+      }
+    })
+    .catch(() => alert('Error deleting enhancement. Please try again.'));
+  }
+}
+
+// Add animation style if not present
+if (!document.querySelector('#history-styles')) {
+  const style = document.createElement('style');
+  style.id = 'history-styles';
+  style.textContent = `
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  `;
+  document.head.appendChild(style);
+}
+</script>
+
 {% endblock %}

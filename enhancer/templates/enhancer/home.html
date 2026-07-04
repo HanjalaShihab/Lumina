@@ -1,223 +1,300 @@
 {% extends "enhancer/base.html" %}
-{% block title %}Lumina Image Enhancer{% endblock %}
+{% block title %}Lumina — AI Image Enhancement{% endblock %}
 {% block content %}
-<section class="workspace">
-  <div class="tool-panel" data-reveal>
-    <div class="section-heading">
-      <p class="eyebrow">
-        <span class="glow-dot"></span>
-        Precision image enhancement
-      </p>
-      <h1>
-        <span class="gradient-text">Lumina</span>
-        <span class="version-badge">v2.0</span>
+
+<!-- ============================================ -->
+<!-- HERO SECTION -->
+<!-- ============================================ -->
+<section class="hero">
+  <div class="hero-grid">
+    <div class="hero-content">
+      <div class="hero-badge">
+        <span class="pulse"></span>
+        AI-Powered Enhancement
+      </div>
+      <h1 class="hero-title">
+        Transform your<br>
+        <span class="highlight">images with precision</span>
       </h1>
-      <p>Neon-fast enhancement with a multi-stage pipeline: color correction, tone recovery, adaptive contrast, and crisp detail.</p>
-    </div>
-
-    <div class="model-strip" aria-label="Pipeline stages">
-      <span class="pipeline-step" data-step="1">
-        <span class="step-icon">⚡</span>
-        White balance
-      </span>
-      <span class="pipeline-step" data-step="2">
-        <span class="step-icon">🎨</span>
-        Tone map
-      </span>
-      <span class="pipeline-step" data-step="3">
-        <span class="step-icon">📊</span>
-        CLAHE
-      </span>
-      <span class="pipeline-step" data-step="4">
-        <span class="step-icon">🌀</span>
-        Denoise
-      </span>
-      <span class="pipeline-step" data-step="5">
-        <span class="step-icon">✨</span>
-        Edge detail
-      </span>
-    </div>
-
-    <form class="upload-form" action="{% url 'enhancer:ai_enhancer' %}" method="post" enctype="multipart/form-data" id="enhanceForm">
-      {% csrf_token %}
+      <p class="hero-subtitle">
+        Professional-grade color correction, tone recovery, and detail enhancement 
+        powered by advanced AI. Get studio-quality results in seconds.
+      </p>
       
-      <div class="form-group">
-        <label>
-          <span class="label-icon">📝</span>
-          Title
-          <input type="text" name="title" placeholder="Optional image title (e.g., sunset street)" class="enhanced-input">
-        </label>
-      </div>
-
-      <label class="dropzone" title="Upload an image to enhance" id="dropzone">
-        <div class="dropzone-content">
-          <span class="dropzone-icon">🖼️</span>
-          <span class="dropzone-text">Drop your image here or click to browse</span>
-          <span class="dropzone-hint">Supports JPG, PNG, WebP up to 20MB</span>
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <div class="number">2.3s</div>
+          <div class="label">Avg. processing time</div>
         </div>
-        <input type="file" name="original" accept="image/*" required>
-      </label>
-
-      <div class="upload-progress" id="uploadProgress" style="display:none;">
-        <div class="progress-bar">
-          <div class="progress-fill" style="width: 0%;"></div>
+        <div class="hero-stat">
+          <div class="number">4.8/5</div>
+          <div class="label">User rating</div>
         </div>
-        <span class="progress-text">0%</span>
-      </div>
-
-      <button class="primary" type="submit" data-reveal id="enhanceBtn">
-        <span class="btn-content">
-          <span class="btn-icon">🚀</span>
-          Enhance image
-          <span class="btn-shimmer"></span>
-        </span>
-      </button>
-
-      <div class="form-footer">
-        <div class="muted" style="font-family: var(--mono); font-size:12px; letter-spacing:.02em;">
-          💡 Tip: Use high-resolution photos for the cleanest micro-contrast.
-        </div>
-        <div class="muted" style="font-family: var(--mono); font-size:12px; letter-spacing:.02em;">
-          ⚡ Powered by Lumina Precision Enhance v2
+        <div class="hero-stat">
+          <div class="number">99.7%</div>
+          <div class="label">Accuracy rate</div>
         </div>
       </div>
-    </form>
-  </div>
-
-  <div class="preview-panel" data-reveal>
-    <div class="panel-title">
-      <span>
-        <span class="panel-icon">🔄</span>
-        Recent outputs
-      </span>
-      <a href="{% url 'enhancer:history' %}" class="panel-link">
-        Open history →
-      </a>
+      
+      <div class="hero-actions">
+        <a href="{% url 'enhancer:ai_enhancer' %}" class="btn-hero btn-hero-primary">
+          ✦ Try AI Enhancement
+        </a>
+        <a href="{% url 'enhancer:manual' %}" class="btn-hero btn-hero-secondary">
+          Manual Controls
+        </a>
+      </div>
     </div>
-
-    {% if recent_jobs %}
-      <div class="result-grid compact">
-        {% for job in recent_jobs %}
-          <a class="image-card" href="{% url 'enhancer:detail' job.pk %}">
-            <div class="image-wrapper">
-              {% if job.enhanced %}
-                <img src="{{ job.enhanced.url }}" alt="{{ job.title|default:'Enhanced image' }}" loading="lazy">
-                <div class="image-overlay">
-                  <span class="view-detail">View detail</span>
-                </div>
-              {% else %}
-                <div class="empty-preview" style="margin:0; padding:12px;">
-                  <span>Processing</span>
-                </div>
-              {% endif %}
-            </div>
-            <span class="image-title">{{ job.title|default:"Untitled" }}</span>
-            <span class="image-date">{{ job.created_at|date:"M j, Y" }}</span>
-          </a>
-        {% endfor %}
-      </div>
-    {% else %}
-      <div class="empty-preview" data-reveal>
-        <div class="empty-content">
-          <span class="empty-icon">🖼️</span>
-          <span>Upload an image to generate your first neon render</span>
-          <span class="empty-hint">Your enhanced images will appear here</span>
+    
+    <div class="hero-visual">
+      <div class="hero-image-placeholder">
+        <div class="placeholder-content">
+          <span class="icon">🖼️</span>
+          <div class="text">Before & After Preview</div>
+          <div style="display:flex;gap:16px;margin-top:12px;justify-content:center;">
+            <div style="padding:8px 12px;background:var(--bg-card);border-radius:var(--radius-sm);border:1px solid var(--border-color);font-size:12px;">Original</div>
+            <span style="color:var(--text-muted);font-size:20px;">→</span>
+            <div style="padding:8px 12px;background:var(--accent-gradient);border-radius:var(--radius-sm);color:#fff;font-size:12px;">Enhanced</div>
+          </div>
+        </div>
+        <div class="badge-float top-right">
+          <div class="label">Processing</div>
+          <div class="value">⚡ 0.8s</div>
+        </div>
+        <div class="badge-float bottom-left">
+          <div class="label">Quality</div>
+          <div class="value">⭐ 4.9</div>
         </div>
       </div>
-    {% endif %}
+    </div>
   </div>
 </section>
 
-<section class="detail-band">
-  <div data-reveal>
-    <p class="eyebrow">
-      <span class="glow-dot"></span>
-      Model profile
-    </p>
-    <h2 style="margin-top:6px;">Built for clean, balanced correction</h2>
-    <p class="muted">
-      Precision Enhance v2 targets the look you want: natural color, controlled contrast, and crisp detail—without harsh artifacts.
-      Expect stable tonal recovery across mixed lighting.
-    </p>
-
-    <div class="model-strip" style="margin-top:14px;">
-      <span style="border-color: rgba(34,211,238,.25);" class="feature-tag">
-        <span class="tag-icon">⬛</span>
-        No crushed shadows
-      </span>
-      <span style="border-color: rgba(167,139,250,.25);" class="feature-tag">
-        <span class="tag-icon">⬜</span>
-        Guarded highlights
-      </span>
-      <span style="border-color: rgba(251,113,133,.25);" class="feature-tag">
-        <span class="tag-icon">🔍</span>
-        Halo-resistant detail
-      </span>
-    </div>
+<!-- ============================================ -->
+<!-- FEATURES SECTION -->
+<!-- ============================================ -->
+<section class="section">
+  <div class="section-header">
+    <div class="eyebrow">Features</div>
+    <h2 class="title">Professional enhancement tools</h2>
+    <p class="subtitle">Everything you need to transform your images into stunning works of art</p>
   </div>
-
-  <div class="spec-grid" data-reveal>
-    <article class="spec-item">
-      <div class="spec-icon">🎨</div>
-      <strong>Color</strong>
-      <span>Gray-world neutralization with guarded vibrance for natural skin and skies.</span>
-      <div class="spec-metrics">
-        <span>Accuracy: 94%</span>
-        <span>Speed: 0.2s</span>
-      </div>
-    </article>
-    <article class="spec-item">
-      <div class="spec-icon">☀️</div>
-      <strong>Light</strong>
-      <span>Percentile stretch with shadow lift and highlight protection.</span>
-      <div class="spec-metrics">
-        <span>Dynamic Range: 14 stops</span>
-        <span>Precision: 99%</span>
-      </div>
-    </article>
-    <article class="spec-item">
-      <div class="spec-icon">🔬</div>
-      <strong>Detail</strong>
-      <span>Local contrast, denoise, and edge-aware sharpening.</span>
-      <div class="spec-metrics">
-        <span>Sharpness: 8.5/10</span>
-        <span>Noise: -3.2dB</span>
-      </div>
-    </article>
+  
+  <div class="features-grid">
+    <div class="feature-card">
+      <span class="icon">🎨</span>
+      <div class="title">Smart Color Correction</div>
+      <div class="desc">Advanced white balance and tone mapping that preserves natural skin tones and vibrant colors.</div>
+      <span class="tag">AI-Powered</span>
+    </div>
+    
+    <div class="feature-card">
+      <span class="icon">🔍</span>
+      <div class="title">Edge-Aware Sharpening</div>
+      <div class="desc">Intelligent detail enhancement that adds crispness without creating halos or artifacts.</div>
+      <span class="tag">Precision</span>
+    </div>
+    
+    <div class="feature-card">
+      <span class="icon">🌀</span>
+      <div class="title">Smart Denoise</div>
+      <div class="desc">Advanced noise reduction that preserves texture and fine details while eliminating grain.</div>
+      <span class="tag">AI-Powered</span>
+    </div>
+    
+    <div class="feature-card">
+      <span class="icon">📊</span>
+      <div class="title">Adaptive Contrast</div>
+      <div class="desc">Intelligent contrast adjustment that brings out details in shadows and highlights.</div>
+      <span class="tag">CLAHE</span>
+    </div>
+    
+    <div class="feature-card">
+      <span class="icon">⚡</span>
+      <div class="title">Batch Processing</div>
+      <div class="desc">Enhance multiple images simultaneously with consistent results across your entire set.</div>
+      <span class="tag">Up to 10 images</span>
+    </div>
+    
+    <div class="feature-card">
+      <span class="icon">📁</span>
+      <div class="title">History & Comparison</div>
+      <div class="desc">Every enhancement is saved with model notes for easy comparison and reproducibility.</div>
+      <span class="tag">Organized</span>
+    </div>
   </div>
 </section>
 
-<section class="info-band">
-  <article class="info-card" data-reveal>
-    <span class="info-head">⚙️ How it works</span>
-    <p>
-      Color correction → tonal recovery → adaptive contrast → denoise → edge-aware detail shaping.
-      Every render also stores model notes so you can reproduce your look.
-    </p>
-    <div class="info-stats">
-      <span>5-step pipeline</span>
-      <span>2.3s average</span>
+<!-- ============================================ -->
+<!-- TOKENS & PRICING -->
+<!-- ============================================ -->
+<section class="section" style="background:var(--bg-secondary);border-radius:var(--radius-xl);padding:60px 40px;margin:40px 0;">
+  <div class="section-header">
+    <div class="eyebrow">Pricing</div>
+    <h2 class="title">Flexible token plans</h2>
+    <p class="subtitle">Choose the plan that fits your needs. Each token = one AI enhancement.</p>
+  </div>
+  
+  <div class="pricing-grid">
+    <div class="pricing-card">
+      <div class="tokens">10 <span>tokens</span></div>
+      <div class="price">$5 <span>USD</span></div>
+      <ul class="features">
+        <li><span class="check">✓</span> 10 AI enhancements</li>
+        <li><span class="check">✓</span> Full resolution output</li>
+        <li><span class="check">✓</span> History storage</li>
+        <li><span class="check">✓</span> Basic support</li>
+      </ul>
+      <button class="btn-pricing btn-pricing-secondary">Buy tokens</button>
     </div>
-  </article>
-  <article class="info-card" data-reveal>
-    <span class="info-head">🌟 Quality</span>
-    <p>
-      Stable outputs across lighting conditions, reducing halos and oversharpening while preserving micro-contrast.
-    </p>
-    <div class="info-stats">
-      <span>⭐ 4.8/5 rating</span>
-      <span>99.7% accuracy</span>
+    
+    <div class="pricing-card popular">
+      <div class="badge">Best Value</div>
+      <div class="tokens">50 <span>tokens</span></div>
+      <div class="price">$20 <span>USD</span></div>
+      <ul class="features">
+        <li><span class="check">✓</span> 50 AI enhancements</li>
+        <li><span class="check">✓</span> Full resolution output</li>
+        <li><span class="check">✓</span> History storage</li>
+        <li><span class="check">✓</span> Priority support</li>
+        <li><span class="check">✓</span> Batch processing</li>
+      </ul>
+      <button class="btn-pricing btn-pricing-primary">Buy tokens</button>
     </div>
-  </article>
-  <article class="info-card" data-reveal>
-    <span class="info-head">📦 What you get</span>
-    <p>
-      Downloadable enhanced results + model notes in History. Compare originals with a premium split-view.
-    </p>
-    <div class="info-stats">
-      <span>Full resolution</span>
-      <span>Preserved metadata</span>
+    
+    <div class="pricing-card">
+      <div class="tokens">100 <span>tokens</span></div>
+      <div class="price">$35 <span>USD</span></div>
+      <ul class="features">
+        <li><span class="check">✓</span> 100 AI enhancements</li>
+        <li><span class="check">✓</span> Full resolution output</li>
+        <li><span class="check">✓</span> History storage</li>
+        <li><span class="check">✓</span> Priority support</li>
+        <li><span class="check">✓</span> Batch processing</li>
+        <li><span class="check">✓</span> API access</li>
+      </ul>
+      <button class="btn-pricing btn-pricing-secondary">Buy tokens</button>
     </div>
-  </article>
+    
+    <div class="pricing-card">
+      <div class="tokens">250 <span>tokens</span></div>
+      <div class="price">$75 <span>USD</span></div>
+      <ul class="features">
+        <li><span class="check">✓</span> 250 AI enhancements</li>
+        <li><span class="check">✓</span> Full resolution output</li>
+        <li><span class="check">✓</span> History storage</li>
+        <li><span class="check">✓</span> Priority support</li>
+        <li><span class="check">✓</span> Batch processing</li>
+        <li><span class="check">✓</span> API access</li>
+        <li><span class="check">✓</span> Custom models</li>
+      </ul>
+      <button class="btn-pricing btn-pricing-secondary">Buy tokens</button>
+    </div>
+  </div>
 </section>
+
+<!-- ============================================ -->
+<!-- HOW IT WORKS -->
+<!-- ============================================ -->
+<section class="section">
+  <div class="section-header">
+    <div class="eyebrow">Process</div>
+    <h2 class="title">How it works</h2>
+    <p class="subtitle">Simple, fast, professional — get perfect images in three steps</p>
+  </div>
+  
+  <div class="steps-grid">
+    <div class="step-card">
+      <div class="number">1</div>
+      <div class="title">Upload your image</div>
+      <div class="desc">Choose from JPG, PNG, or WebP — up to 20MB</div>
+      <div class="arrow">→</div>
+    </div>
+    
+    <div class="step-card">
+      <div class="number">2</div>
+      <div class="title">AI Enhancement</div>
+      <div class="desc">Our AI analyzes and applies precision corrections</div>
+      <div class="arrow">→</div>
+    </div>
+    
+    <div class="step-card">
+      <div class="number">3</div>
+      <div class="title">Download & compare</div>
+      <div class="desc">Get your enhanced image and compare with original</div>
+      <div class="arrow">→</div>
+    </div>
+    
+    <div class="step-card">
+      <div class="number">4</div>
+      <div class="title">Track history</div>
+      <div class="desc">All enhancements saved for future reference</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- TESTIMONIALS -->
+<!-- ============================================ -->
+<section class="section" style="background:var(--bg-secondary);border-radius:var(--radius-xl);padding:60px 40px;margin:40px 0;">
+  <div class="section-header">
+    <div class="eyebrow">Testimonials</div>
+    <h2 class="title">Trusted by professionals</h2>
+  </div>
+  
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px;">
+    <div class="testimonial-card">
+      <div class="stars">★★★★★</div>
+      <div class="text">"This tool has completely transformed my workflow. The color correction is incredible and the results are consistently professional."</div>
+      <div class="author">
+        <div class="avatar">JD</div>
+        <div>
+          <div class="name">John Doe</div>
+          <div class="role">Photographer</div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="testimonial-card">
+      <div class="stars">★★★★★</div>
+      <div class="text">"The batch processing feature is a lifesaver. I can enhance entire shoots in minutes and the quality is outstanding."</div>
+      <div class="author">
+        <div class="avatar">SM</div>
+        <div>
+          <div class="name">Sarah Miller</div>
+          <div class="role">Studio Owner</div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="testimonial-card">
+      <div class="stars">★★★★★</div>
+      <div class="text">"Finally, an AI enhancement tool that actually delivers on its promises. The detail preservation is unmatched."</div>
+      <div class="author">
+        <div class="avatar">AK</div>
+        <div>
+          <div class="name">Alex Kim</div>
+          <div class="role">Creative Director</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- CTA SECTION -->
+<!-- ============================================ -->
+<section class="section" style="text-align:center;padding:60px 0;">
+  <div style="max-width:560px;margin:0 auto;">
+    <h2 style="font-size:36px;font-weight:700;margin-bottom:12px;">Ready to enhance?</h2>
+    <p style="font-size:17px;color:var(--text-secondary);margin-bottom:24px;">
+      Start transforming your images with professional AI enhancement.
+      <span class="text-accent">First 3 enhancements free!</span>
+    </p>
+    <a href="{% url 'enhancer:ai_enhancer' %}" class="btn-hero btn-hero-primary" style="padding:16px 48px;font-size:18px;">
+      ✦ Start Enhancing
+    </a>
+  </div>
+</section>
+
 {% endblock %}

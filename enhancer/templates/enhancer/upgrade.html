@@ -1,0 +1,53 @@
+{% extends "enhancer/base.html" %}
+{% block title %}Lumina — Upgrade{% endblock %}
+{% block content %}
+<section class="section">
+  <div class="section-header">
+    <div class="eyebrow">Tokens</div>
+    <h2 class="title">Get more enhancement tokens</h2>
+    <p class="subtitle">Choose a plan and start enhancing immediately.</p>
+  </div>
+
+  <div style="max-width:900px;margin:0 auto;">
+    <div class="pricing-grid">
+      <div class="pricing-card">
+        <div class="tokens">10 <span>tokens</span></div>
+        <div class="price">$5 <span>USD</span></div>
+        <ul class="features">
+          <li><span class="check">✓</span> 10 AI enhancements</li>
+          <li><span class="check">✓</span> History storage</li>
+          <li><span class="check">✓</span> Basic support</li>
+        </ul>
+        <button class="btn-pricing btn-pricing-secondary" type="button">Buy tokens</button>
+      </div>
+
+      <div class="pricing-card popular">
+        <div class="badge">Best Value</div>
+        <div class="tokens">50 <span>tokens</span></div>
+        <div class="price">$20 <span>USD</span></div>
+        <ul class="features">
+          <li><span class="check">✓</span> 50 AI enhancements</li>
+          <li><span class="check">✓</span> Priority support</li>
+          <li><span class="check">✓</span> Batch processing</li>
+        </ul>
+        <button class="btn-pricing btn-pricing-primary" type="button">Buy tokens</button>
+      </div>
+
+      <div class="pricing-card">
+        <div class="tokens">100 <span>tokens</span></div>
+        <div class="price">$35 <span>USD</span></div>
+        <ul class="features">
+          <li><span class="check">✓</span> 100 AI enhancements</li>
+          <li><span class="check">✓</span> Full resolution output</li>
+          <li><span class="check">✓</span> API access</li>
+        </ul>
+        <button class="btn-pricing btn-pricing-secondary" type="button">Buy tokens</button>
+      </div>
+    </div>
+
+    <div style="margin-top:24px;color:var(--text-muted);font-size:14px;line-height:1.6;">
+      Token purchases/payment integration isn’t implemented yet—this page is a placeholder to prevent template errors.
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,141 +1,102 @@
 {% extends "enhancer/base.html" %}
-{% block title %}AI Enhancer | Lumina{% endblock %}
+{% block title %}AI Enhancement | Lumina{% endblock %}
 {% block content %}
-<section class="editor-layout">
-  <div class="tool-panel" data-reveal>
-    <div class="section-heading">
-      <p class="eyebrow">
-        <span class="glow-dot"></span>
-        Precision mode
-      </p>
-      <h1>
-        <span class="gradient-text">AI enhancer</span>
-        <span class="version-badge">Auto</span>
-      </h1>
-      <p>Upload a photo and let Lumina detect the scene—then apply correction with neon-clean results.</p>
-    </div>
 
-    <div class="model-card" style="margin-top:14px;">
-      <div class="model-header">
-        <span style="font-family: var(--mono); font-size:12px; letter-spacing:.10em; text-transform:uppercase; color: rgba(34,211,238,.88);">
-          🧠 Active model
-        </span>
-        <span class="model-status">● Online</span>
-      </div>
-      <strong style="display:block; font-size:18px; margin-top:6px;">Lumina Precision Enhance v2</strong>
-      <p style="margin:8px 0 0; color: var(--muted); line-height:1.55;">
-        White balance, tone recovery, adaptive contrast, vibrance, denoise, and edge-aware sharpening.
-      </p>
-      <div class="model-params">
-        <span class="param-tag">6-stage pipeline</span>
-        <span class="param-tag">98% accuracy</span>
-        <span class="param-tag">0.8s avg</span>
-      </div>
-    </div>
+<div style="padding:24px 0;">
+  <h1 style="font-size:32px;font-weight:700;margin-bottom:4px;">AI Enhancement</h1>
+  <p style="color:var(--text-secondary);font-size:16px;margin-bottom:24px;">
+    Let our AI analyze and enhance your image with professional precision
+  </p>
 
-    {% include "enhancer/partials/form_errors.html" %}
-
-    <form class="upload-form" method="post" enctype="multipart/form-data" id="aiForm">
-      {% csrf_token %}
-
-      <div class="form-group">
-        <label>
-          <span class="label-icon">📝</span>
-          {{ form.title.label_tag }}
-          {{ form.title }}
-        </label>
-      </div>
-
-      <label class="dropzone" title="Upload a photo to enhance" id="dropzone">
-        <div class="dropzone-content">
-          <span class="dropzone-icon">🤖</span>
-          <span class="dropzone-text">Drop your image for AI enhancement</span>
-          <span class="dropzone-hint">AI will analyze and optimize automatically</span>
+  <div class="tool-layout">
+    <!-- Main Tool -->
+    <div class="tool-panel">
+      <div class="model-card" style="margin-bottom:20px;">
+        <div class="header">
+          <span>🧠 Active Model</span>
+          <span style="color:#00e676;font-size:12px;">● Online</span>
         </div>
-        {{ form.original }}
-      </label>
+        <div class="name">Lumina Precision Enhance v2</div>
+        <div class="desc">Advanced AI model for color correction, tone recovery, contrast, denoise, and sharpening.</div>
+        <div class="tags">
+          <span class="tag">6-stage pipeline</span>
+          <span class="tag">98% accuracy</span>
+          <span class="tag">0.8s avg</span>
+        </div>
+      </div>
 
-      <div class="ai-options">
-        <div class="option-group">
-          <label class="checkbox-label">
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <div class="form-group">
+          <label class="form-label">Image title</label>
+          <input class="form-input" type="text" name="title" placeholder="Optional title">
+        </div>
+
+        <label class="dropzone">
+          <span class="icon">🖼️</span>
+          <span class="text">Drop your image here or click to browse</span>
+          <span class="hint">JPG, PNG, WebP · up to 20MB · AI will analyze automatically</span>
+          <input type="file" name="original" accept="image/*" required>
+        </label>
+
+        <div class="ai-options">
+          <label class="option">
             <input type="checkbox" checked> Auto-detect scene
           </label>
-          <label class="checkbox-label">
+          <label class="option">
             <input type="checkbox" checked> Preserve metadata
           </label>
-          <label class="checkbox-label">
-            <input type="checkbox"> Export EXIF
-          </label>
-        </div>
-        <div class="option-group">
-          <span class="option-label">Output format:</span>
-          <select class="format-select">
+          <select class="select">
             <option>PNG (lossless)</option>
             <option selected>JPG (optimized)</option>
             <option>WebP (modern)</option>
           </select>
         </div>
-      </div>
 
-      <div class="upload-progress" id="uploadProgress" style="display:none;">
-        <div class="progress-bar">
-          <div class="progress-fill" style="width: 0%;"></div>
-        </div>
-        <span class="progress-text">Analyzing image...</span>
-      </div>
+        <button class="btn btn-primary btn-block" type="submit">
+          ✦ Run AI Enhancement
+        </button>
 
-      <button class="primary" type="submit" data-reveal id="aiBtn">
-        <span class="btn-content">
-          <span class="btn-icon">🤖</span>
-          Run enhancement
-          <span class="btn-shimmer"></span>
-        </span>
-      </button>
+        <div style="margin-top:12px;display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--text-muted);">
+          <span>💡 1 token per enhancement</span>
+          <span>⚡ Processed in ~0.8s</span>
+          <span>✦ You have 50 tokens</span>
+        </div>
+      </form>
+    </div>
 
-      <div class="form-footer">
-        <div class="muted" style="font-family: var(--mono); font-size:12px; letter-spacing:.02em;">
-          💡 Tip: Try portraits for skin-tone stability and landscapes for crisp skies.
-        </div>
-        <div class="muted" style="font-family: var(--mono); font-size:12px; letter-spacing:.02em;">
-          🎯 AI-powered scene detection and optimization
-        </div>
+    <!-- Preview -->
+    <div class="preview-panel">
+      <div class="header">
+        <span class="title">Preview</span>
+        <span style="color:var(--text-muted);font-size:12px;">Original → Enhanced</span>
       </div>
-    </form>
+      
+      {% if result %}
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div>
+            <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">Original</div>
+            <img src="{{ result.original.url }}" style="width:100%;border-radius:var(--radius-sm);border:1px solid var(--border-color);">
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">Enhanced</div>
+            <img src="{{ result.enhanced.url }}" style="width:100%;border-radius:var(--radius-sm);border:1px solid var(--border-color);">
+          </div>
+        </div>
+        <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+          <a href="{{ result.enhanced.url }}" download class="btn btn-primary" style="flex:1;">⬇ Download Enhanced</a>
+          <a href="{% url 'enhancer:history' %}" class="btn btn-secondary">View History</a>
+        </div>
+      {% else %}
+        <div class="empty-state" style="padding:60px 20px;text-align:center;">
+          <span style="font-size:48px;display:block;margin-bottom:12px;opacity:0.3;">✦</span>
+          <div style="color:var(--text-secondary);font-size:14px;">Upload an image to preview</div>
+          <div style="color:var(--text-muted);font-size:12px;margin-top:4px;">Your enhanced image will appear here</div>
+        </div>
+      {% endif %}
+    </div>
   </div>
+</div>
 
-  {% include "enhancer/partials/result.html" with result=result %}
-</section>
-
-<section class="info-band">
-  <article class="info-card" data-reveal>
-    <span class="info-head">🤖 How it works</span>
-    <p>
-      The model estimates scene characteristics, then predicts correction strength for color, tone, noise, and edge detail.
-    </p>
-    <div class="info-stats">
-      <span>Deep learning</span>
-      <span>Scene-aware</span>
-    </div>
-  </article>
-  <article class="info-card" data-reveal>
-    <span class="info-head">🌟 Quality</span>
-    <p>
-      Balanced sharpening and denoise to reduce halos while preserving micro-contrast in textures.
-    </p>
-    <div class="info-stats">
-      <span>⭐ 4.9/5 rating</span>
-      <span>99.2% accuracy</span>
-    </div>
-  </article>
-  <article class="info-card" data-reveal>
-    <span class="info-head">📦 What you get</span>
-    <p>
-      Enhanced output + model notes, saved automatically and available in History for easy comparison.
-    </p>
-    <div class="info-stats">
-      <span>Auto-saved</span>
-      <span>Full history</span>
-    </div>
-  </article>
-</section>
 {% endblock %}

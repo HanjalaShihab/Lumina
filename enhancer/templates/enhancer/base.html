@@ -4,74 +4,130 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#0b1020">
-  <title>{% block title %}Lumina{% endblock %}</title>
+  <meta name="theme-color" content="#08080e">
+  <title>{% block title %}Lumina — AI Image Enhancer{% endblock %}</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
 <body>
-  <a class="skip-link" href="#content">Skip to content</a>
 
-  <div class="bg-grid" aria-hidden="true"></div>
-  <div class="ambient" aria-hidden="true"></div>
-  <div class="vignette" aria-hidden="true"></div>
+  <!-- Background Effects -->
+  <div class="background-effects">
+    <div class="gradient-orb"></div>
+    <div class="gradient-orb"></div>
+    <div class="gradient-orb"></div>
+  </div>
 
-  <header class="topbar">
-    <div class="topbar-inner">
-      <a class="brand" href="{% url 'enhancer:home' %}">
-        <span class="brand-mark" aria-hidden="true"></span>
-        <span class="brand-text">
-          <span class="brand-name">Lumina</span>
-          <span class="brand-sub">Precision Enhance v2</span>
+  <!-- Header -->
+  <header class="header">
+    <div class="header-inner">
+      <a class="logo" href="{% url 'enhancer:home' %}">
+        <span class="logo-icon">L</span>
+        <span class="logo-text">
+          Lumina
+          <span>image lab</span>
         </span>
       </a>
 
-      <nav class="nav" aria-label="Primary">
-        <a class="nav-link" href="{% url 'enhancer:ai_enhancer' %}">AI</a>
-        <a class="nav-link" href="{% url 'enhancer:manual' %}">Manual</a>
-        <a class="nav-link" href="{% url 'enhancer:batch' %}">Batch</a>
-        <a class="nav-link" href="{% url 'enhancer:history' %}">History</a>
+      <nav class="nav">
+        <a class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}" href="{% url 'enhancer:home' %}">Home</a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'ai_enhancer' %}active{% endif %}" href="{% url 'enhancer:ai_enhancer' %}">AI Enhance</a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'manual' %}active{% endif %}" href="{% url 'enhancer:manual' %}">Manual</a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'batch' %}active{% endif %}" href="{% url 'enhancer:batch' %}">Batch</a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'history' %}active{% endif %}" href="{% url 'enhancer:history' %}">History</a>
       </nav>
 
-      <div class="topbar-status" aria-hidden="true">
-        <span class="status-dot"></span>
-        <span class="status-text">Ready</span>
+      <div class="nav-right">
+        <div class="token-display">
+          <span class="coin">✦</span>
+          <span>{% if user.is_authenticated %}{{ user.profile.tokens|default:50 }}{% else %}50{% endif %}</span>
+        </div>
+        {% if user.is_authenticated %}
+          <a href="{% url 'logout' %}" class="btn-nav" style="background:transparent;border:1px solid var(--border-color);box-shadow:none;">Sign out</a>
+        {% else %}
+          <a href="{% url 'login' %}" class="btn-nav" style="background:transparent;border:1px solid var(--border-color);box-shadow:none;">Sign in</a>
+        {% endif %}
+        <a href="{% url 'enhancer:upgrade' %}" class="btn-nav">Get Tokens</a>
       </div>
     </div>
   </header>
 
-  <main id="content" class="page" tabindex="-1">
-    {% if messages %}
-      <div class="messages" role="status" aria-live="polite">
-        {% for message in messages %}
-          <div class="message {{ message.tags }} is-revealed">{{ message }}</div>
-        {% endfor %}
-      </div>
-    {% endif %}
-    <div class="page-surface">
+  <!-- CSRF token for JS (used by history delete endpoint) -->
+  <input type="hidden" name="csrfmiddlewaretoken" value="{% csrf_token %}">
+
+  <!-- Main -->
+  <main>
+    <div class="container">
+      {% if messages %}
+        <div class="messages" style="margin-top:16px;">
+          {% for message in messages %}
+            <div class="message {{ message.tags }}" style="padding:12px 16px;border-radius:var(--radius-sm);background:var(--bg-card);border:1px solid var(--border-color);margin-bottom:8px;">
+              {{ message }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+      
       {% block content %}{% endblock %}
     </div>
   </main>
 
-  <footer class="footer">
-    <div class="footer-inner">
-      <div class="footer-left">
-        <div class="footer-brand">
-          <span class="brand-mark small" aria-hidden="true"></span>
-          <span>Lumina</span>
+  <!-- Footer -->
+  <footer style="border-top:1px solid var(--border-color);padding:40px 0;margin-top:40px;">
+    <div class="container">
+      <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:40px;">
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+            <span class="logo-icon" style="width:32px;height:32px;font-size:14px;">L</span>
+            <span style="font-weight:700;font-size:18px;">Lumina</span>
+          </div>
+          <p style="color:var(--text-muted);font-size:14px;max-width:300px;line-height:1.6;">
+            Professional AI image enhancement with precision color, tone, and detail control.
+          </p>
+          <div style="display:flex;gap:12px;margin-top:12px;">
+            <a href="#" style="color:var(--text-muted);text-decoration:none;font-size:20px;">🐦</a>
+            <a href="#" style="color:var(--text-muted);text-decoration:none;font-size:20px;">📷</a>
+            <a href="#" style="color:var(--text-muted);text-decoration:none;font-size:20px;">💬</a>
+          </div>
         </div>
-        <p class="footer-note">
-          Neon UI redesign • <span class="mono">v2</span> pipeline visual components.
-        </p>
+        <div>
+          <h4 style="font-size:14px;font-weight:600;margin-bottom:8px;">Product</h4>
+          <ul style="list-style:none;padding:0;">
+            <li><a href="{% url 'enhancer:ai_enhancer' %}" style="color:var(--text-secondary);text-decoration:none;font-size:13px;line-height:2;">AI Enhance</a></li>
+            <li><a href="{% url 'enhancer:manual' %}" style="color:var(--text-secondary);text-decoration:none;font-size:13px;line-height:2;">Manual</a></li>
+            <li><a href="{% url 'enhancer:batch' %}" style="color:var(--text-secondary);text-decoration:none;font-size:13px;line-height:2;">Batch</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 style="font-size:14px;font-weight:600;margin-bottom:8px;">Resources</h4>
+          <ul style="list-style:none;padding:0;">
+            <li><a href="#" style="color:var(--text-secondary);text-decoration:none;font-size:13px;line-height:2;">Documentation</a></li>
+            <li><a href="#" style="color:var(--text-secondary);text-decoration:none;font-size:13px;line-height:2;">API</a></li>
+            <li><a href="#" style="color:var(--text-secondary);text-decoration:none;font-size:13px;line-height:2;">Changelog</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 style="font-size:14px;font-weight:600;margin-bottom:8px;">Support</h4>
+          <ul style="list-style:none;padding:0;">
+            <li><a href="#" style="color:var(--text-secondary);text-decoration:none;font-size:13px;line-height:2;">Help Center</a></li>
+            <li><a href="#" style="color:var(--text-secondary);text-decoration:none;font-size:13px;line-height:2;">Contact</a></li>
+            <li><a href="{% url 'enhancer:history' %}" style="color:var(--text-secondary);text-decoration:none;font-size:13px;line-height:2;">History</a></li>
+          </ul>
+        </div>
       </div>
-      <div class="footer-right">
-        <a class="footer-link" href="{% url 'enhancer:history' %}">View renders</a>
-        <span class="footer-sep" aria-hidden="true">·</span>
-        <a class="footer-link" href="{% url 'enhancer:manual' %}">Fine tune</a>
+      <div style="border-top:1px solid var(--border-color);margin-top:32px;padding-top:16px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;font-size:13px;color:var(--text-muted);">
+        <span>© 2026 Lumina. All rights reserved.</span>
+        <span>
+          <a href="#" style="color:var(--text-muted);text-decoration:none;">Privacy</a>
+          <span style="margin:0 8px;">·</span>
+          <a href="#" style="color:var(--text-muted);text-decoration:none;">Terms</a>
+          <span style="margin:0 8px;">·</span>
+          <a href="#" style="color:var(--text-muted);text-decoration:none;">Cookies</a>
+        </span>
       </div>
     </div>
   </footer>

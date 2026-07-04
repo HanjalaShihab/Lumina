@@ -1,122 +1,264 @@
 {% extends "enhancer/base.html" %}
-{% block title %}Manual Enhance | Lumina{% endblock %}
+{% block title %}Manual Enhancement | Lumina{% endblock %}
 {% block content %}
-<section class="editor-layout">
-  <div class="tool-panel" data-reveal>
-    <div class="section-heading">
-      <p class="eyebrow">
-        <span class="glow-dot"></span>
-        Manual mode
-      </p>
-      <h1>
-        <span class="gradient-text">Fine tune</span>
-        <span class="version-badge">Pro</span>
-      </h1>
-      <p>Steer the look precisely—choose exact slider strengths for color, tone, denoise, and edge detail.</p>
+
+<div style="padding:24px 0;">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:24px;">
+    <div>
+      <h1 style="font-size:32px;font-weight:700;margin-bottom:4px;">Manual Controls</h1>
+      <p style="color:var(--text-secondary);font-size:16px;">Fine-tune every aspect of your image enhancement</p>
     </div>
-
-    {% include "enhancer/partials/form_errors.html" %}
-
-    <form class="upload-form" method="post" enctype="multipart/form-data" id="manualForm">
-      {% csrf_token %}
-
-      <div class="form-group">
-        <label>
-          <span class="label-icon">📝</span>
-          {{ form.title.label_tag }}
-          {{ form.title }}
-        </label>
-      </div>
-
-      <label class="dropzone" title="Choose the image you want to enhance" id="dropzone">
-        <div class="dropzone-content">
-          <span class="dropzone-icon">🖼️</span>
-          <span class="dropzone-text">Drop your image here or click to browse</span>
-          <span class="dropzone-hint">Supports JPG, PNG, WebP up to 20MB</span>
-        </div>
-        {{ form.original }}
-      </label>
-
-      <div class="controls" aria-label="Manual controls">
-        {% for field in form %}
-          {% if field.name != "title" and field.name != "original" %}
-            <label class="control-group">
-              <div class="control-header">
-                <span class="control-label">{{ field.label }}</span>
-                <span class="control-value" id="val_{{ field.name }}">50</span>
-              </div>
-              {{ field }}
-              <div class="control-ticks">
-                <span>Min</span>
-                <span>Default</span>
-                <span>Max</span>
-              </div>
-            </label>
-          {% endif %}
-        {% endfor %}
-      </div>
-
-      <div class="preset-controls">
-        <span class="preset-label">Quick presets:</span>
-        <button type="button" class="preset-btn" data-preset="portrait">Portrait</button>
-        <button type="button" class="preset-btn" data-preset="landscape">Landscape</button>
-        <button type="button" class="preset-btn" data-preset="night">Night</button>
-        <button type="button" class="preset-btn" data-preset="vintage">Vintage</button>
-      </div>
-
-      <button class="primary" type="submit" data-reveal id="applyBtn">
-        <span class="btn-content">
-          <span class="btn-icon">✨</span>
-          Apply settings
-          <span class="btn-shimmer"></span>
-        </span>
-      </button>
-
-      <div class="form-footer">
-        <div class="muted" style="font-family: var(--mono); font-size:12px; letter-spacing:.02em;">
-          💡 Tip: Start conservative on detail/sharpen, then increase gradually to avoid halos.
-        </div>
-        <div class="muted" style="font-family: var(--mono); font-size:12px; letter-spacing:.02em;">
-          🎯 Real-time preview available in Pro version
-        </div>
-      </div>
-    </form>
+    <div style="display:flex;gap:8px;">
+      <span style="padding:4px 14px;border-radius:999px;background:rgba(108,92,231,0.1);border:1px solid rgba(108,92,231,0.2);font-size:12px;color:var(--text-accent);">Pro Mode</span>
+      <span style="padding:4px 14px;border-radius:999px;background:var(--bg-card);border:1px solid var(--border-color);font-size:12px;color:var(--text-muted);">8 Parameters</span>
+    </div>
   </div>
 
-  {% include "enhancer/partials/result.html" with result=result %}
-</section>
+  <div class="tool-layout">
+    <!-- Main Tool -->
+    <div class="tool-panel">
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
 
-<section class="info-band">
-  <article class="info-card" data-reveal>
-    <span class="info-head">🎛️ How it works</span>
-    <p>
-      You choose the exact sliders—Lumina applies targeted color and tonal adjustments with detail-preserving enhancement.
-    </p>
-    <div class="info-stats">
-      <span>8 adjustable parameters</span>
-      <span>Fine control</span>
+        <div class="form-group">
+          <label class="form-label">Image title</label>
+          <input class="form-input" type="text" name="title" placeholder="e.g., Sunset Portrait">
+        </div>
+
+        <label class="dropzone" style="margin-bottom:16px;">
+          <span class="icon">🖼️</span>
+          <span class="text">Drop your image here or click to browse</span>
+          <span class="hint">JPG, PNG, WebP · up to 20MB</span>
+          <input type="file" name="original" accept="image/*" required>
+        </label>
+
+        <!-- Quick Presets -->
+        <div style="margin-bottom:16px;">
+          <div style="font-size:12px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">Quick Presets</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;">
+            <button type="button" class="preset-btn" data-preset="portrait" style="padding:6px 16px;border-radius:999px;border:1px solid var(--border-color);background:transparent;color:var(--text-secondary);font-size:12px;cursor:pointer;transition:var(--transition);font-family:var(--font-sans);">👤 Portrait</button>
+            <button type="button" class="preset-btn" data-preset="landscape" style="padding:6px 16px;border-radius:999px;border:1px solid var(--border-color);background:transparent;color:var(--text-secondary);font-size:12px;cursor:pointer;transition:var(--transition);font-family:var(--font-sans);">🏔️ Landscape</button>
+            <button type="button" class="preset-btn" data-preset="night" style="padding:6px 16px;border-radius:999px;border:1px solid var(--border-color);background:transparent;color:var(--text-secondary);font-size:12px;cursor:pointer;transition:var(--transition);font-family:var(--font-sans);">🌙 Night</button>
+            <button type="button" class="preset-btn" data-preset="vintage" style="padding:6px 16px;border-radius:999px;border:1px solid var(--border-color);background:transparent;color:var(--text-secondary);font-size:12px;cursor:pointer;transition:var(--transition);font-family:var(--font-sans);">📻 Vintage</button>
+            <button type="button" class="preset-btn" data-preset="cinematic" style="padding:6px 16px;border-radius:999px;border:1px solid var(--border-color);background:transparent;color:var(--text-secondary);font-size:12px;cursor:pointer;transition:var(--transition);font-family:var(--font-sans);">🎬 Cinematic</button>
+          </div>
+        </div>
+
+        <!-- Controls Grid -->
+        <div class="controls-grid">
+          <div class="control-group">
+            <div class="header">
+              <span>Color Balance</span>
+              <span class="value" id="val_color">50</span>
+            </div>
+            <input type="range" name="color" min="0" max="100" value="50">
+            <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--text-muted);margin-top:2px;">
+              <span>Cool</span>
+              <span>Neutral</span>
+              <span>Warm</span>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <div class="header">
+              <span>Tone Recovery</span>
+              <span class="value" id="val_tone">50</span>
+            </div>
+            <input type="range" name="tone" min="0" max="100" value="50">
+            <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--text-muted);margin-top:2px;">
+              <span>Subtle</span>
+              <span>Balanced</span>
+              <span>Aggressive</span>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <div class="header">
+              <span>Contrast</span>
+              <span class="value" id="val_contrast">50</span>
+            </div>
+            <input type="range" name="contrast" min="0" max="100" value="50">
+            <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--text-muted);margin-top:2px;">
+              <span>Flat</span>
+              <span>Natural</span>
+              <span>Dramatic</span>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <div class="header">
+              <span>Vibrance</span>
+              <span class="value" id="val_vibrance">50</span>
+            </div>
+            <input type="range" name="vibrance" min="0" max="100" value="50">
+            <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--text-muted);margin-top:2px;">
+              <span>Muted</span>
+              <span>Natural</span>
+              <span>Vivid</span>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <div class="header">
+              <span>Denoise</span>
+              <span class="value" id="val_denoise">50</span>
+            </div>
+            <input type="range" name="denoise" min="0" max="100" value="50">
+            <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--text-muted);margin-top:2px;">
+              <span>None</span>
+              <span>Moderate</span>
+              <span>Heavy</span>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <div class="header">
+              <span>Sharpening</span>
+              <span class="value" id="val_sharpen">50</span>
+            </div>
+            <input type="range" name="sharpen" min="0" max="100" value="50">
+            <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--text-muted);margin-top:2px;">
+              <span>Soft</span>
+              <span>Crisp</span>
+              <span>Edge</span>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <div class="header">
+              <span>Exposure</span>
+              <span class="value" id="val_exposure">50</span>
+            </div>
+            <input type="range" name="exposure" min="0" max="100" value="50">
+            <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--text-muted);margin-top:2px;">
+              <span>Dark</span>
+              <span>Correct</span>
+              <span>Bright</span>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <div class="header">
+              <span>Warmth</span>
+              <span class="value" id="val_warmth">50</span>
+            </div>
+            <input type="range" name="warmth" min="0" max="100" value="50">
+            <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--text-muted);margin-top:2px;">
+              <span>Cool</span>
+              <span>Neutral</span>
+              <span>Warm</span>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn btn-primary btn-block" type="submit">
+          ✦ Apply Manual Settings
+        </button>
+
+        <div style="margin-top:12px;display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--text-muted);">
+          <span>💡 Start conservative, increase gradually</span>
+          <span>⚡ Real-time preview in Pro</span>
+          <span>✦ 1 token per enhancement</span>
+        </div>
+      </form>
     </div>
-  </article>
-  <article class="info-card" data-reveal>
-    <span class="info-head">🌟 Quality</span>
-    <p>
-      Stable results with guarded contrast so highlights don't crush and edges stay clean.
-      You keep texture without over-sharpening.
-    </p>
-    <div class="info-stats">
-      <span>⭐ 4.9/5 rating</span>
-      <span>Professional grade</span>
+
+    <!-- Preview Panel -->
+    <div class="preview-panel">
+      <div class="header">
+        <span class="title">Preview</span>
+        <span style="color:var(--text-muted);font-size:12px;">Manual Mode</span>
+      </div>
+      
+      {% if result %}
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div>
+            <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">Original</div>
+            <img src="{{ result.original.url }}" style="width:100%;border-radius:var(--radius-sm);border:1px solid var(--border-color);">
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">Enhanced</div>
+            <img src="{{ result.enhanced.url }}" style="width:100%;border-radius:var(--radius-sm);border:1px solid var(--border-color);">
+          </div>
+        </div>
+        <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+          <a href="{{ result.enhanced.url }}" download class="btn btn-primary" style="flex:1;">⬇ Download Enhanced</a>
+          <a href="{% url 'enhancer:history' %}" class="btn btn-secondary">View History</a>
+        </div>
+      {% else %}
+        <div class="empty-state" style="padding:60px 20px;text-align:center;">
+          <span style="font-size:48px;display:block;margin-bottom:12px;opacity:0.3;">🎛️</span>
+          <div style="color:var(--text-secondary);font-size:14px;">Adjust sliders and apply</div>
+          <div style="color:var(--text-muted);font-size:12px;margin-top:4px;">Your enhanced image will appear here</div>
+        </div>
+      {% endif %}
     </div>
-  </article>
-  <article class="info-card" data-reveal>
-    <span class="info-head">📦 What you get</span>
-    <p>
-      An enhanced export that matches your settings plus clear model notes in History—so your tweaks stay reproducible.
-    </p>
-    <div class="info-stats">
-      <span>Settings saved</span>
-      <span>Version history</span>
+  </div>
+
+  <!-- Info Cards -->
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:24px;">
+    <div class="info-card">
+      <span class="label">🎛️ How it works</span>
+      <div class="content">Choose exact slider values — Lumina applies targeted color, tone, and detail adjustments.</div>
+      <div class="stats"><span>8 parameters</span><span>Fine control</span></div>
     </div>
-  </article>
-</section>
+    <div class="info-card">
+      <span class="label">🌟 Quality</span>
+      <div class="content">Stable results with guarded contrast — highlights stay clean, edges remain sharp.</div>
+      <div class="stats"><span>4.9/5 rating</span><span>Professional grade</span></div>
+    </div>
+    <div class="info-card">
+      <span class="label">📦 What you get</span>
+      <div class="content">Enhanced export matching your settings, saved with clear model notes in History.</div>
+      <div class="stats"><span>Settings saved</span><span>Version history</span></div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Update range value displays
+  document.querySelectorAll('.control-group input[type="range"]').forEach(range => {
+    range.addEventListener('input', function() {
+      const valDisplay = document.getElementById('val_' + this.name);
+      if (valDisplay) valDisplay.textContent = this.value;
+    });
+  });
+
+  // Preset buttons
+  document.querySelectorAll('.preset-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const preset = this.dataset.preset;
+      const controls = {
+        portrait: { color: 65, tone: 55, contrast: 50, vibrance: 60, denoise: 40, sharpen: 30, exposure: 55, warmth: 55 },
+        landscape: { color: 50, tone: 70, contrast: 65, vibrance: 70, denoise: 30, sharpen: 60, exposure: 60, warmth: 50 },
+        night: { color: 70, tone: 80, contrast: 60, vibrance: 50, denoise: 70, sharpen: 40, exposure: 75, warmth: 45 },
+        vintage: { color: 40, tone: 50, contrast: 45, vibrance: 30, denoise: 35, sharpen: 45, exposure: 50, warmth: 70 },
+        cinematic: { color: 55, tone: 65, contrast: 70, vibrance: 55, denoise: 35, sharpen: 50, exposure: 52, warmth: 60 }
+      };
+
+      if (controls[preset]) {
+        document.querySelectorAll('.control-group input[type="range"]').forEach(range => {
+          if (controls[preset][range.name] !== undefined) {
+            range.value = controls[preset][range.name];
+            const valDisplay = document.getElementById('val_' + range.name);
+            if (valDisplay) valDisplay.textContent = range.value;
+          }
+        });
+      }
+
+      // Highlight active preset
+      document.querySelectorAll('.preset-btn').forEach(b => {
+        b.style.borderColor = 'var(--border-color)';
+        b.style.background = 'transparent';
+        b.style.color = 'var(--text-secondary)';
+      });
+      this.style.borderColor = '#6c5ce7';
+      this.style.background = 'rgba(108,92,231,0.1)';
+      this.style.color = 'var(--text-primary)';
+    });
+  });
+});
+</script>
+
 {% endblock %}

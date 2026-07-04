@@ -1,0 +1,48 @@
+{% extends "enhancer/base.html" %}
+{% block title %}Sign in | Lumina{% endblock %}
+{% block content %}
+<section class="section">
+  <div class="section-header">
+    <div class="eyebrow">Welcome back</div>
+    <h2 class="title">Sign in to Lumina</h2>
+    <p class="subtitle">Enhance images with AI-powered precision.</p>
+  </div>
+
+  <form method="post" style="max-width:520px;margin:0 auto;">
+    {% csrf_token %}
+
+    {% if form.errors %}
+      <div style="padding:12px 16px;border-radius:var(--radius-sm);background:rgba(253,121,168,0.08);border:1px solid rgba(253,121,168,0.25);color:#fd79a8;margin-bottom:12px;">
+        Invalid username or password.
+      </div>
+    {% endif %}
+
+    <div class="form-grid" style="display:grid;gap:12px;">
+      {% for field in form %}
+        <div class="field" style="display:grid;gap:6px;">
+          <label style="font-size:13px;color:var(--text-secondary);font-weight:600;">{{ field.label }}</label>
+          {{ field }}
+          {% if field.errors %}
+            <div style="color:#fd79a8;font-size:13px;">{{ field.errors|join:", " }}</div>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+
+    <button type="submit" class="btn btn-primary" style="margin-top:16px;width:100%;">
+      Sign in
+    </button>
+
+    {% if form.fields.password.help_text %}
+      <div style="margin-top:10px;color:var(--text-muted);font-size:12px;">
+        {{ form.fields.password.help_text }}
+      </div>
+    {% endif %}
+
+    <div style="margin-top:12px;text-align:center;color:var(--text-muted);font-size:13px;">
+      Don’t have an account?
+      <a href="{% url 'signup' %}" style="color:var(--text-secondary);text-decoration:none;font-weight:600;">Sign up</a>
+    </div>
+  </form>
+</section>
+{% endblock %}

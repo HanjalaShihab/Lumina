@@ -1,164 +1,286 @@
 {% extends "enhancer/base.html" %}
-{% block title %}Batch Enhance | Lumina{% endblock %}
+{% block title %}Batch Enhancement | Lumina{% endblock %}
 {% block content %}
-<section class="batch-layout">
-  <div class="tool-panel wide" data-reveal>
-    <div class="section-heading">
-      <p class="eyebrow">
-        <span class="glow-dot"></span>
-        Batch mode
-      </p>
-      <h1>
-        <span class="gradient-text">Enhance multiple</span>
-        <span class="version-badge">Multi</span>
-      </h1>
-      <p>Run the neon-clean pipeline across a set of photos and get download links instantly.</p>
+
+<div style="padding:24px 0;">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:24px;">
+    <div>
+      <h1 style="font-size:32px;font-weight:700;margin-bottom:4px;">Batch Processing</h1>
+      <p style="color:var(--text-secondary);font-size:16px;">Enhance multiple images simultaneously with consistent results</p>
     </div>
-
-    {% include "enhancer/partials/form_errors.html" %}
-
-    <form class="upload-form" method="post" enctype="multipart/form-data" id="batchForm">
-      {% csrf_token %}
-
-      <label class="dropzone" title="Choose multiple images" id="dropzone">
-        <div class="dropzone-content">
-          <span class="dropzone-icon">📁</span>
-          <span class="dropzone-text">Drop multiple images here or click to browse</span>
-          <span class="dropzone-hint">Supports up to 10 images simultaneously</span>
-        </div>
-        {{ form.images }}
-      </label>
-
-      <div class="batch-preview" id="batchPreview" style="display:none;">
-        <div class="batch-preview-header">
-          <span>Selected images: <span id="imageCount">0</span></span>
-          <button type="button" class="clear-btn" id="clearBatch">Clear all</button>
-        </div>
-        <div class="batch-thumbnails" id="batchThumbnails"></div>
-      </div>
-
-      <div class="upload-progress" id="uploadProgress" style="display:none;">
-        <div class="progress-bar">
-          <div class="progress-fill" style="width: 0%;"></div>
-        </div>
-        <span class="progress-text">Processing 0/0</span>
-      </div>
-
-      <button class="primary" type="submit" data-reveal id="batchBtn">
-        <span class="btn-content">
-          <span class="btn-icon">⚡</span>
-          Enhance batch
-          <span class="btn-shimmer"></span>
-        </span>
-      </button>
-
-      <div class="form-footer">
-        <div class="muted" style="font-family: var(--mono); font-size:12px; letter-spacing:.02em;">
-          💡 Tip: Upload a whole set from the same session for best consistency.
-        </div>
-        <div class="muted" style="font-family: var(--mono); font-size:12px; letter-spacing:.02em;">
-          📊 Batch processing up to 10 images at once
-        </div>
-      </div>
-    </form>
+    <div style="display:flex;gap:8px;">
+      <span style="padding:4px 14px;border-radius:999px;background:rgba(0,230,118,0.08);border:1px solid rgba(0,230,118,0.15);font-size:12px;color:#00e676;">⚡ Up to 10 images</span>
+      <span style="padding:4px 14px;border-radius:999px;background:var(--bg-card);border:1px solid var(--border-color);font-size:12px;color:var(--text-muted);">Bulk Mode</span>
+    </div>
   </div>
 
-  <aside class="process-panel" data-reveal>
-    <div class="process-header">
-      <span style="font-family: var(--mono); font-size:12px; letter-spacing:.10em; text-transform:uppercase; color: rgba(34,211,238,.88);">
-        ⚙️ Batch pipeline
-      </span>
-      <span class="process-status" id="processStatus">Ready</span>
-    </div>
-    <ol class="process-steps">
-      <li class="step-item" data-step="1">
-        <span class="step-number">1</span>
-        Normalize color cast
-        <span class="step-status">✓</span>
-      </li>
-      <li class="step-item" data-step="2">
-        <span class="step-number">2</span>
-        Recover tonal range
-        <span class="step-status">✓</span>
-      </li>
-      <li class="step-item" data-step="3">
-        <span class="step-number">3</span>
-        Shape local contrast
-        <span class="step-status">✓</span>
-      </li>
-      <li class="step-item" data-step="4">
-        <span class="step-number">4</span>
-        Clean noise + sharpen edges
-        <span class="step-status">✓</span>
-      </li>
-    </ol>
-    <div class="process-stats">
-      <div class="stat-item">
-        <span class="stat-label">Images</span>
-        <span class="stat-value" id="batchCount">0</span>
-      </div>
-      <div class="stat-item">
-        <span class="stat-label">Est. time</span>
-        <span class="stat-value" id="batchTime">0s</span>
-      </div>
-    </div>
-  </aside>
-</section>
+  <div class="tool-layout">
+    <!-- Main Tool -->
+    <div class="tool-panel">
+      <form method="post" enctype="multipart/form-data" id="batchForm">
+        {% csrf_token %}
 
-<section class="info-band">
-  <article class="info-card" data-reveal>
-    <span class="info-head">⚙️ How it works</span>
-    <p>
-      Lumina applies the same correction profile to each image, producing consistent, ready-to-export neon renders.
-    </p>
-    <div class="info-stats">
-      <span>Batch processing</span>
-      <span>Consistent results</span>
-    </div>
-  </article>
-  <article class="info-card" data-reveal>
-    <span class="info-head">🌟 Quality</span>
-    <p>
-      Prioritizes tonal stability and edge clarity—so batch outputs don't drift or over-sharpen.
-    </p>
-    <div class="info-stats">
-      <span>⭐ 4.7/5 rating</span>
-      <span>100% consistency</span>
-    </div>
-  </article>
-  <article class="info-card" data-reveal>
-    <span class="info-head">📦 What you get</span>
-    <p>
-      Download links for every enhanced image, plus model notes available in History for comparison.
-    </p>
-    <div class="info-stats">
-      <span>Bulk download</span>
-      <span>Organized output</span>
-    </div>
-  </article>
-</section>
-
-{% if results %}
-<section class="result-grid" data-reveal>
-  {% for result in results %}
-    <article class="image-card batch-result">
-      <div class="image-wrapper">
-        {% if result.enhanced %}
-          <img src="{{ result.enhanced.url }}" alt="{{ result.title|default:'Enhanced image' }}" loading="lazy">
-          <div class="image-overlay">
-            <span class="batch-index">#{{ forloop.counter }}</span>
+        <div style="margin-bottom:16px;">
+          <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px;">
+            <div style="flex:1;min-width:180px;">
+              <label class="form-label">Preset</label>
+              <select class="form-input" style="padding:8px 12px;">
+                <option>Same correction for all</option>
+                <option>Auto-detect per image</option>
+                <option>Manual (advanced)</option>
+              </select>
+            </div>
+            <div style="flex:1;min-width:180px;">
+              <label class="form-label">Output format</label>
+              <select class="form-input" style="padding:8px 12px;">
+                <option>PNG (lossless)</option>
+                <option selected>JPG (optimized)</option>
+                <option>WebP (modern)</option>
+              </select>
+            </div>
           </div>
-        {% endif %}
+        </div>
+
+        <label class="dropzone" id="batchDropzone">
+          <span class="icon">📁</span>
+          <span class="text">Drop multiple images here or click to browse</span>
+          <span class="hint">Supports up to 10 images simultaneously · JPG, PNG, WebP</span>
+          <input type="file" name="images" accept="image/*" multiple required>
+        </label>
+
+        <!-- Batch Preview -->
+        <div id="batchPreview" style="display:none;background:var(--bg-input);border-radius:var(--radius-sm);padding:12px 16px;margin:12px 0;">
+          <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--text-secondary);">
+            <span>Selected images: <strong id="imageCount">0</strong></span>
+            <button type="button" id="clearBatch" style="padding:4px 12px;border-radius:999px;border:1px solid rgba(251,113,133,0.2);background:rgba(251,113,133,0.08);color:#fd79a8;font-size:11px;cursor:pointer;font-family:var(--font-sans);transition:var(--transition);">Clear all</button>
+          </div>
+          <div id="batchThumbnails" style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;"></div>
+        </div>
+
+        <button class="btn btn-primary btn-block" type="submit" id="batchBtn">
+          ✦ Enhance Batch ({{ tokens_required|default:"1" }} token per image)
+        </button>
+
+        <div style="margin-top:12px;display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--text-muted);">
+          <span>💡 Upload from same session for consistency</span>
+          <span>⚡ Processed in parallel</span>
+          <span>✦ Bulk discount: 10% off</span>
+        </div>
+      </form>
+    </div>
+
+    <!-- Process Panel -->
+    <div class="preview-panel">
+      <div class="header">
+        <span class="title">Batch Pipeline</span>
+        <span id="processStatus" style="color:#00e676;font-size:12px;">● Ready</span>
       </div>
-      <span class="image-title">{{ result.title|default:"Untitled" }}</span>
-      {% if result.enhanced %}
-        <a class="text-link download-link" href="{{ result.enhanced.url }}" download>
-          <span class="link-icon">⬇️</span>
-          Download
-        </a>
-      {% endif %}
-    </article>
-  {% endfor %}
-</section>
-{% endif %}
+
+      <div style="margin-bottom:16px;">
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-muted);margin-bottom:8px;">
+          <span>Progress</span>
+          <span id="batchProgress">0 / 0</span>
+        </div>
+        <div style="width:100%;height:4px;background:var(--border-color);border-radius:4px;overflow:hidden;">
+          <div id="batchProgressFill" style="width:0%;height:100%;background:var(--accent-gradient);border-radius:4px;transition:width 0.3s ease;"></div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+        <div style="background:var(--bg-input);border-radius:var(--radius-sm);padding:12px;text-align:center;">
+          <div style="font-size:11px;color:var(--text-muted);">Images</div>
+          <div style="font-size:24px;font-weight:700;" id="batchCount">0</div>
+        </div>
+        <div style="background:var(--bg-input);border-radius:var(--radius-sm);padding:12px;text-align:center;">
+          <div style="font-size:11px;color:var(--text-muted);">Est. Time</div>
+          <div style="font-size:24px;font-weight:700;" id="batchTime">0s</div>
+        </div>
+      </div>
+
+      <div style="border-top:1px solid var(--border-color);padding-top:12px;">
+        <div style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">Pipeline Steps</div>
+        <div class="process-step">
+          <span class="num">1</span>
+          Normalize color cast
+          <span class="status">✓</span>
+        </div>
+        <div class="process-step">
+          <span class="num">2</span>
+          Recover tonal range
+          <span class="status">✓</span>
+        </div>
+        <div class="process-step">
+          <span class="num">3</span>
+          Shape local contrast
+          <span class="status">✓</span>
+        </div>
+        <div class="process-step">
+          <span class="num">4</span>
+          Clean noise + sharpen edges
+          <span class="status">✓</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Results -->
+  {% if results %}
+  <div style="margin-top:24px;">
+    <h3 style="font-size:18px;font-weight:600;margin-bottom:16px;">Batch Results</h3>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;">
+      {% for result in results %}
+      <div style="background:var(--bg-card);border:1px solid var(--border-color);border-radius:var(--radius-md);overflow:hidden;transition:var(--transition);">
+        <div style="position:relative;">
+          {% if result.enhanced %}
+            <img src="{{ result.enhanced.url }}" style="width:100%;aspect-ratio:1;object-fit:cover;display:block;">
+          {% endif %}
+        </div>
+        <div style="padding:12px;">
+          <div style="font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ result.title|default:"Untitled" }}</div>
+          <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;">
+            {% if result.enhanced %}
+              <a href="{{ result.enhanced.url }}" download style="padding:4px 12px;border-radius:999px;border:1px solid rgba(0,230,118,0.15);background:rgba(0,230,118,0.06);color:#00e676;font-size:11px;text-decoration:none;font-weight:500;transition:var(--transition);">⬇ Download</a>
+            {% endif %}
+            <span style="padding:4px 12px;border-radius:999px;border:1px solid var(--border-color);font-size:10px;color:var(--text-muted);">#{{ forloop.counter }}</span>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    <div style="margin-top:16px;display:flex;gap:12px;">
+      <a href="#" class="btn btn-primary" style="flex:1;">⬇ Download All (ZIP)</a>
+      <a href="{% url 'enhancer:history' %}" class="btn btn-secondary">View in History</a>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Info Cards -->
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:24px;">
+    <div class="info-card">
+      <span class="label">⚙️ How it works</span>
+      <div class="content">Lumina applies consistent correction to every image, producing ready-to-export results.</div>
+      <div class="stats"><span>Batch processing</span><span>Consistent results</span></div>
+    </div>
+    <div class="info-card">
+      <span class="label">🌟 Quality</span>
+      <div class="content">Prioritizes tonal stability and edge clarity — batch outputs stay consistent.</div>
+      <div class="stats"><span>4.7/5 rating</span><span>100% consistency</span></div>
+    </div>
+    <div class="info-card">
+      <span class="label">📦 What you get</span>
+      <div class="content">Download links for every enhanced image, plus model notes in History.</div>
+      <div class="stats"><span>Bulk download</span><span>Organized output</span></div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const batchInput = document.querySelector('#batchForm input[type="file"]');
+  const preview = document.getElementById('batchPreview');
+  const thumbnails = document.getElementById('batchThumbnails');
+  const count = document.getElementById('imageCount');
+  const batchCount = document.getElementById('batchCount');
+  const batchTime = document.getElementById('batchTime');
+  const progressText = document.getElementById('batchProgress');
+  const progressFill = document.getElementById('batchProgressFill');
+
+  if (batchInput) {
+    batchInput.addEventListener('change', function() {
+      const files = this.files;
+      if (files && files.length > 0) {
+        preview.style.display = 'block';
+        count.textContent = files.length;
+        batchCount.textContent = files.length;
+        batchTime.textContent = Math.ceil(files.length * 0.6) + 's';
+        progressText.textContent = '0 / ' + files.length;
+        progressFill.style.width = '0%';
+        thumbnails.innerHTML = '';
+
+        for (let i = 0; i < Math.min(files.length, 8); i++) {
+          const reader = new FileReader();
+          const div = document.createElement('div');
+          div.style.cssText = 'width:56px;height:56px;border-radius:8px;overflow:hidden;border:1px solid var(--border-color);flex-shrink:0;position:relative;';
+          
+          reader.onload = function(e) {
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            img.style.cssText = 'width:100%;height:100%;object-fit:cover;';
+            div.appendChild(img);
+          };
+          reader.readAsDataURL(files[i]);
+          thumbnails.appendChild(div);
+        }
+
+        if (files.length > 8) {
+          const more = document.createElement('span');
+          more.textContent = '+' + (files.length - 8) + ' more';
+          more.style.cssText = 'font-size:11px;color:var(--text-muted);display:flex;align-items:center;font-family:var(--font-mono);';
+          thumbnails.appendChild(more);
+        }
+
+        // Update process status
+        document.getElementById('processStatus').textContent = '● Ready';
+        document.getElementById('processStatus').style.color = '#00e676';
+      } else {
+        preview.style.display = 'none';
+        thumbnails.innerHTML = '';
+        count.textContent = '0';
+        batchCount.textContent = '0';
+        batchTime.textContent = '0s';
+        progressText.textContent = '0 / 0';
+        progressFill.style.width = '0%';
+      }
+    });
+  }
+
+  // Clear batch
+  document.getElementById('clearBatch').addEventListener('click', function() {
+    if (batchInput) {
+      batchInput.value = '';
+      preview.style.display = 'none';
+      thumbnails.innerHTML = '';
+      count.textContent = '0';
+      batchCount.textContent = '0';
+      batchTime.textContent = '0s';
+      progressText.textContent = '0 / 0';
+      progressFill.style.width = '0%';
+      document.getElementById('processStatus').textContent = '● Ready';
+      document.getElementById('processStatus').style.color = '#00e676';
+    }
+  });
+
+  // Form submit simulation
+  document.getElementById('batchForm').addEventListener('submit', function(e) {
+    const btn = document.getElementById('batchBtn');
+    if (!btn.disabled) {
+      btn.disabled = true;
+      btn.innerHTML = '<span style="display:flex;align-items:center;gap:8px;justify-content:center;">⏳ Processing batch...</span>';
+      
+      const status = document.getElementById('processStatus');
+      status.textContent = '● Processing';
+      status.style.color = '#fbbf24';
+      
+      // Simulate progress
+      let progress = 0;
+      const total = parseInt(count.textContent) || 1;
+      const interval = setInterval(() => {
+        progress += Math.random() * 8 + 2;
+        if (progress > 100) progress = 100;
+        progressFill.style.width = progress + '%';
+        progressText.textContent = Math.round(progress / 100 * total) + ' / ' + total;
+        
+        if (progress >= 100) {
+          clearInterval(interval);
+          status.textContent = '● Complete';
+          status.style.color = '#00e676';
+          btn.disabled = false;
+          btn.innerHTML = '✦ Enhance Batch (1 token per image)';
+        }
+      }, 300);
+    }
+  });
+});
+</script>
+
 {% endblock %}

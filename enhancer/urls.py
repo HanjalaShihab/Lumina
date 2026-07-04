@@ -12,4 +12,7 @@ urlpatterns = [
     path("batch/", views.batch, name="batch"),
     path("history/", views.history, name="history"),
     path("history/<int:pk>/", views.detail, name="detail"),
+    path("upgrade/", views.upgrade, name="upgrade"),
+    path("delete/<int:pk>/", views.delete_enhancement, name="delete_enhancement"),
+    path("signup/", views.signup, name="signup"),
 ]

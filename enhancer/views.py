@@ -1,9 +1,16 @@
 from django.contrib import messages
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth import login
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
 from .ai_engine import enhance_image
 from .forms import BatchEnhancementForm, ImageUploadForm, ManualEnhancementForm
 from .models import EnhancementJob
+
+
+def upgrade(request):
+    return render(request, "enhancer/upgrade.html")
 
 
 def home(request):
@@ -68,3 +75,24 @@ def history(request):
 def detail(request, pk):
     job = get_object_or_404(EnhancementJob, pk=pk)
     return render(request, "enhancer/history.html", {"jobs": [job], "focused": job})
+
+
+def signup(request):
+    if request.method == "POST":
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            return redirect("enhancer:home")
+    else:
+        form = UserCreationForm()
+    return render(request, "registration/signup.html", {"form": form})
+
+
+def delete_enhancement(request, pk: int):
+    if request.method != "POST":
+        return JsonResponse({"success": False, "error": "Invalid method"}, status=405)
+
+    job = get_object_or_404(EnhancementJob, pk=pk)
+    job.delete()
+    return JsonResponse({"success": True})

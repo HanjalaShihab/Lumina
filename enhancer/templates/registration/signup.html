@@ -1,0 +1,35 @@
+{% extends "enhancer/base.html" %}
+{% block title %}Sign up | Lumina{% endblock %}
+{% block content %}
+<section class="section">
+  <div class="section-header">
+    <div class="eyebrow">Create account</div>
+    <h2 class="title">Sign up to Lumina</h2>
+    <p class="subtitle">Get tokens and start enhancing images.</p>
+  </div>
+
+  <form method="post" style="max-width:520px;margin:0 auto;">
+    {% csrf_token %}
+    <div class="form-grid" style="display:grid;gap:12px;">
+      {% for field in form %}
+        <div class="field" style="display:grid;gap:6px;">
+          <label style="font-size:13px;color:var(--text-secondary);font-weight:600;">{{ field.label }}</label>
+          {{ field }}
+          {% if field.errors %}
+            <div style="color:#fd79a8;font-size:13px;">{{ field.errors|join:", " }}</div>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+
+    <button type="submit" class="btn btn-primary" style="margin-top:16px;width:100%;">
+      Create account
+    </button>
+
+    <div style="margin-top:12px;text-align:center;color:var(--text-muted);font-size:13px;">
+      Already have an account?
+      <a href="{% url 'login' %}" style="color:var(--text-secondary);text-decoration:none;font-weight:600;">Sign in</a>
+    </div>
+  </form>
+</section>
+{% endblock %}
