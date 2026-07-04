@@ -1,0 +1,76 @@
+{% extends "enhancer/base.html" %}
+{% block title %}Lumina Image Enhancer{% endblock %}
+{% block content %}
+<section class="workspace">
+  <div class="tool-panel">
+    <div class="section-heading">
+      <p class="eyebrow">Precision image enhancement</p>
+      <h1>Lumina</h1>
+      <p>Upload an image and run it through the Lumina Precision Enhance v2 pipeline.</p>
+    </div>
+    <div class="model-strip">
+      <span>White balance</span>
+      <span>Tone map</span>
+      <span>CLAHE</span>
+      <span>Denoise</span>
+      <span>Edge detail</span>
+    </div>
+    <form class="upload-form" action="{% url 'enhancer:ai_enhancer' %}" method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <label>
+        Title
+        <input type="text" name="title" placeholder="Optional image title">
+      </label>
+      <label class="dropzone">
+        <span>Choose image</span>
+        <input type="file" name="original" accept="image/*" required>
+      </label>
+      <button class="primary" type="submit">Enhance image</button>
+    </form>
+  </div>
+
+  <div class="preview-panel">
+    <div class="panel-title">
+      <span>Recent outputs</span>
+      <a href="{% url 'enhancer:history' %}">Open history</a>
+    </div>
+    {% if recent_jobs %}
+      <div class="result-grid compact">
+        {% for job in recent_jobs %}
+          <a class="image-card" href="{% url 'enhancer:detail' job.pk %}">
+            {% if job.enhanced %}
+              <img src="{{ job.enhanced.url }}" alt="{{ job.title|default:'Enhanced image' }}">
+            {% endif %}
+            <span>{{ job.title|default:"Untitled" }}</span>
+          </a>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-preview">
+        <span>Drop in an image to create the first enhanced output</span>
+      </div>
+    {% endif %}
+  </div>
+</section>
+
+<section class="detail-band">
+  <div>
+    <p class="eyebrow">Model profile</p>
+    <h2>Built for clean, balanced correction</h2>
+  </div>
+  <div class="spec-grid">
+    <article>
+      <strong>Color</strong>
+      <span>Gray-world neutralization with guarded vibrance.</span>
+    </article>
+    <article>
+      <strong>Light</strong>
+      <span>Percentile stretch with shadow lift and highlight protection.</span>
+    </article>
+    <article>
+      <strong>Detail</strong>
+      <span>Local contrast, denoise, and edge-aware sharpening.</span>
+    </article>
+  </div>
+</section>
+{% endblock %}

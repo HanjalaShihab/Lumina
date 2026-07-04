@@ -1,0 +1,42 @@
+{% extends "enhancer/base.html" %}
+{% block title %}History | Lumina{% endblock %}
+{% block content %}
+<section class="history-head">
+  <div class="section-heading">
+    <p class="eyebrow">Saved work</p>
+    <h1>{% if focused %}{{ focused.title|default:"Enhancement" }}{% else %}History{% endif %}</h1>
+    <p>Review original and enhanced files with model notes for each render.</p>
+  </div>
+</section>
+
+{% if jobs %}
+<section class="history-list">
+  {% for job in jobs %}
+    <article class="history-item">
+      <div class="comparison">
+        <div>
+          <span>Original</span>
+          <img src="{{ job.original.url }}" alt="Original image">
+        </div>
+        {% if job.enhanced %}
+        <div>
+          <span>Enhanced</span>
+          <img src="{{ job.enhanced.url }}" alt="Enhanced image">
+        </div>
+        {% endif %}
+      </div>
+      <div class="meta">
+        <h2>{{ job.title|default:"Untitled" }}</h2>
+        <p>{{ job.notes }}</p>
+        <p>{{ job.get_mode_display }} · {{ job.created_at|date:"M j, Y g:i A" }}</p>
+        {% if job.enhanced %}
+          <a class="button-link" href="{{ job.enhanced.url }}" download>Download</a>
+        {% endif %}
+      </div>
+    </article>
+  {% endfor %}
+</section>
+{% else %}
+<div class="empty-state">No enhanced images yet.</div>
+{% endif %}
+{% endblock %}

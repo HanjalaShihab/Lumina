@@ -1,0 +1,43 @@
+{% extends "enhancer/base.html" %}
+{% block title %}Batch Enhance | Lumina{% endblock %}
+{% block content %}
+<section class="batch-layout">
+<div class="tool-panel wide">
+  <div class="section-heading">
+    <p class="eyebrow">Batch mode</p>
+    <h1>Enhance multiple images</h1>
+    <p>Run the precision model across a set of images and download the completed outputs.</p>
+  </div>
+  {% include "enhancer/partials/form_errors.html" %}
+  <form class="upload-form" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <label class="dropzone">
+      <span>Choose images</span>
+      {{ form.images }}
+    </label>
+    <button class="primary" type="submit">Enhance batch</button>
+  </form>
+</div>
+<aside class="process-panel">
+  <span>Batch pipeline</span>
+  <ol>
+    <li>Normalize color cast</li>
+    <li>Recover tonal range</li>
+    <li>Shape local contrast</li>
+    <li>Clean noise and sharpen edges</li>
+  </ol>
+</aside>
+</section>
+
+{% if results %}
+<section class="result-grid">
+  {% for result in results %}
+    <article class="image-card">
+      <img src="{{ result.enhanced.url }}" alt="{{ result.title|default:'Enhanced image' }}">
+      <span>{{ result.title|default:"Untitled" }}</span>
+      <a class="text-link" href="{{ result.enhanced.url }}" download>Download</a>
+    </article>
+  {% endfor %}
+</section>
+{% endif %}
+{% endblock %}

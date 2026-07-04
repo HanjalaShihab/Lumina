@@ -1,0 +1,30 @@
+<div class="preview-panel">
+  {% if result %}
+    <div class="panel-title">
+      <span>Enhancement result</span>
+      <a href="{% url 'enhancer:detail' result.pk %}">Open detail</a>
+    </div>
+    <div class="comparison">
+      <div>
+        <span>Original</span>
+        <img src="{{ result.original.url }}" alt="Original image">
+      </div>
+      <div>
+        <span>Enhanced</span>
+        <img src="{{ result.enhanced.url }}" alt="Enhanced image">
+      </div>
+    </div>
+    <div class="result-actions">
+      <p>{{ result.notes }}</p>
+      <a class="button-link" href="{{ result.enhanced.url }}" download>Download enhanced image</a>
+    </div>
+  {% else %}
+    <div class="panel-title">
+      <span>Output preview</span>
+      <span>Waiting for image</span>
+    </div>
+    <div class="empty-preview">
+      <span>Result preview</span>
+    </div>
+  {% endif %}
+</div>

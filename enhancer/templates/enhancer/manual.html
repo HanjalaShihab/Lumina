@@ -1,0 +1,34 @@
+{% extends "enhancer/base.html" %}
+{% block title %}Manual Enhance | Lumina{% endblock %}
+{% block content %}
+<section class="editor-layout">
+  <div class="tool-panel">
+    <div class="section-heading">
+      <p class="eyebrow">Manual mode</p>
+      <h1>Fine tune</h1>
+      <p>Use exact controls when you want a deliberate look instead of automatic correction.</p>
+    </div>
+    {% include "enhancer/partials/form_errors.html" %}
+    <form class="upload-form" method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      {{ form.title.label_tag }} {{ form.title }}
+      <label class="dropzone">
+        <span>Choose image</span>
+        {{ form.original }}
+      </label>
+      <div class="controls">
+        {% for field in form %}
+          {% if field.name != "title" and field.name != "original" %}
+            <label>
+              <span>{{ field.label }}</span>
+              {{ field }}
+            </label>
+          {% endif %}
+        {% endfor %}
+      </div>
+      <button class="primary" type="submit">Apply settings</button>
+    </form>
+  </div>
+  {% include "enhancer/partials/result.html" with result=result %}
+</section>
+{% endblock %}
