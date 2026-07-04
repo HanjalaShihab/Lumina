@@ -4,34 +4,77 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b1020">
   <title>{% block title %}Lumina{% endblock %}</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
   <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
 <body>
+  <a class="skip-link" href="#content">Skip to content</a>
+
+  <div class="bg-grid" aria-hidden="true"></div>
   <div class="ambient" aria-hidden="true"></div>
+  <div class="vignette" aria-hidden="true"></div>
+
   <header class="topbar">
-    <a class="brand" href="{% url 'enhancer:home' %}">
-      <span class="brand-mark"></span>
-      Lumina
-    </a>
-    <nav class="nav">
-      <a href="{% url 'enhancer:ai_enhancer' %}">AI</a>
-      <a href="{% url 'enhancer:manual' %}">Manual</a>
-      <a href="{% url 'enhancer:batch' %}">Batch</a>
-      <a href="{% url 'enhancer:history' %}">History</a>
-    </nav>
+    <div class="topbar-inner">
+      <a class="brand" href="{% url 'enhancer:home' %}">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span class="brand-text">
+          <span class="brand-name">Lumina</span>
+          <span class="brand-sub">Precision Enhance v2</span>
+        </span>
+      </a>
+
+      <nav class="nav" aria-label="Primary">
+        <a class="nav-link" href="{% url 'enhancer:ai_enhancer' %}">AI</a>
+        <a class="nav-link" href="{% url 'enhancer:manual' %}">Manual</a>
+        <a class="nav-link" href="{% url 'enhancer:batch' %}">Batch</a>
+        <a class="nav-link" href="{% url 'enhancer:history' %}">History</a>
+      </nav>
+
+      <div class="topbar-status" aria-hidden="true">
+        <span class="status-dot"></span>
+        <span class="status-text">Ready</span>
+      </div>
+    </div>
   </header>
 
-  <main class="page">
+  <main id="content" class="page" tabindex="-1">
     {% if messages %}
-      <div class="messages">
+      <div class="messages" role="status" aria-live="polite">
         {% for message in messages %}
-          <div class="message {{ message.tags }}">{{ message }}</div>
+          <div class="message {{ message.tags }} is-revealed">{{ message }}</div>
         {% endfor %}
       </div>
     {% endif %}
-    {% block content %}{% endblock %}
+    <div class="page-surface">
+      {% block content %}{% endblock %}
+    </div>
   </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-left">
+        <div class="footer-brand">
+          <span class="brand-mark small" aria-hidden="true"></span>
+          <span>Lumina</span>
+        </div>
+        <p class="footer-note">
+          Neon UI redesign • <span class="mono">v2</span> pipeline visual components.
+        </p>
+      </div>
+      <div class="footer-right">
+        <a class="footer-link" href="{% url 'enhancer:history' %}">View renders</a>
+        <span class="footer-sep" aria-hidden="true">·</span>
+        <a class="footer-link" href="{% url 'enhancer:manual' %}">Fine tune</a>
+      </div>
+    </div>
+  </footer>
 
   <script src="{% static 'js/app.js' %}"></script>
 </body>

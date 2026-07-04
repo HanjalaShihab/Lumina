@@ -2,33 +2,121 @@
 {% block title %}Manual Enhance | Lumina{% endblock %}
 {% block content %}
 <section class="editor-layout">
-  <div class="tool-panel">
+  <div class="tool-panel" data-reveal>
     <div class="section-heading">
-      <p class="eyebrow">Manual mode</p>
-      <h1>Fine tune</h1>
-      <p>Use exact controls when you want a deliberate look instead of automatic correction.</p>
+      <p class="eyebrow">
+        <span class="glow-dot"></span>
+        Manual mode
+      </p>
+      <h1>
+        <span class="gradient-text">Fine tune</span>
+        <span class="version-badge">Pro</span>
+      </h1>
+      <p>Steer the look precisely—choose exact slider strengths for color, tone, denoise, and edge detail.</p>
     </div>
+
     {% include "enhancer/partials/form_errors.html" %}
-    <form class="upload-form" method="post" enctype="multipart/form-data">
+
+    <form class="upload-form" method="post" enctype="multipart/form-data" id="manualForm">
       {% csrf_token %}
-      {{ form.title.label_tag }} {{ form.title }}
-      <label class="dropzone">
-        <span>Choose image</span>
+
+      <div class="form-group">
+        <label>
+          <span class="label-icon">📝</span>
+          {{ form.title.label_tag }}
+          {{ form.title }}
+        </label>
+      </div>
+
+      <label class="dropzone" title="Choose the image you want to enhance" id="dropzone">
+        <div class="dropzone-content">
+          <span class="dropzone-icon">🖼️</span>
+          <span class="dropzone-text">Drop your image here or click to browse</span>
+          <span class="dropzone-hint">Supports JPG, PNG, WebP up to 20MB</span>
+        </div>
         {{ form.original }}
       </label>
-      <div class="controls">
+
+      <div class="controls" aria-label="Manual controls">
         {% for field in form %}
           {% if field.name != "title" and field.name != "original" %}
-            <label>
-              <span>{{ field.label }}</span>
+            <label class="control-group">
+              <div class="control-header">
+                <span class="control-label">{{ field.label }}</span>
+                <span class="control-value" id="val_{{ field.name }}">50</span>
+              </div>
               {{ field }}
+              <div class="control-ticks">
+                <span>Min</span>
+                <span>Default</span>
+                <span>Max</span>
+              </div>
             </label>
           {% endif %}
         {% endfor %}
       </div>
-      <button class="primary" type="submit">Apply settings</button>
+
+      <div class="preset-controls">
+        <span class="preset-label">Quick presets:</span>
+        <button type="button" class="preset-btn" data-preset="portrait">Portrait</button>
+        <button type="button" class="preset-btn" data-preset="landscape">Landscape</button>
+        <button type="button" class="preset-btn" data-preset="night">Night</button>
+        <button type="button" class="preset-btn" data-preset="vintage">Vintage</button>
+      </div>
+
+      <button class="primary" type="submit" data-reveal id="applyBtn">
+        <span class="btn-content">
+          <span class="btn-icon">✨</span>
+          Apply settings
+          <span class="btn-shimmer"></span>
+        </span>
+      </button>
+
+      <div class="form-footer">
+        <div class="muted" style="font-family: var(--mono); font-size:12px; letter-spacing:.02em;">
+          💡 Tip: Start conservative on detail/sharpen, then increase gradually to avoid halos.
+        </div>
+        <div class="muted" style="font-family: var(--mono); font-size:12px; letter-spacing:.02em;">
+          🎯 Real-time preview available in Pro version
+        </div>
+      </div>
     </form>
   </div>
+
   {% include "enhancer/partials/result.html" with result=result %}
+</section>
+
+<section class="info-band">
+  <article class="info-card" data-reveal>
+    <span class="info-head">🎛️ How it works</span>
+    <p>
+      You choose the exact sliders—Lumina applies targeted color and tonal adjustments with detail-preserving enhancement.
+    </p>
+    <div class="info-stats">
+      <span>8 adjustable parameters</span>
+      <span>Fine control</span>
+    </div>
+  </article>
+  <article class="info-card" data-reveal>
+    <span class="info-head">🌟 Quality</span>
+    <p>
+      Stable results with guarded contrast so highlights don't crush and edges stay clean.
+      You keep texture without over-sharpening.
+    </p>
+    <div class="info-stats">
+      <span>⭐ 4.9/5 rating</span>
+      <span>Professional grade</span>
+    </div>
+  </article>
+  <article class="info-card" data-reveal>
+    <span class="info-head">📦 What you get</span>
+    <p>
+      An enhanced export that matches your settings plus clear model notes in History—so your tweaks stay reproducible.
+    </p>
+    <div class="info-stats">
+      <span>Settings saved</span>
+      <span>Version history</span>
+    </div>
+  </article>
 </section>
 {% endblock %}

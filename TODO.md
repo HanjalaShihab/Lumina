@@ -1,21 +1,20 @@
-# TODO
+# Lumina TODO
 
-## Part A — Real AI enhancement (Real-ESRGAN)
-- [x] Verify current AI pipeline usage and add Real-ESRGAN inference path in `enhancer/ai_engine.py` (lazy model load + CPU fallback)
+## UI upgrades (done after ✅)
+- [ ] Add consistent “How it works / Quality / What you get” sections to:
+  - [ ] enhancer/templates/enhancer/home.html
+  - [ ] enhancer/templates/enhancer/manual.html
+  - [ ] enhancer/templates/enhancer/ai_enhancer.html
+  - [ ] enhancer/templates/enhancer/batch.html
+  - [ ] enhancer/templates/enhancer/history.html
+  - [ ] enhancer/templates/enhancer/partials/result.html
+- [ ] Polish History/Result notes wording + formatting
+- [ ] Add CSS for the new info blocks in static/css/style.css
+- [ ] Run dev server and verify the updated website visually
 
-- [ ] Update `enhancer/forms.py` + `ai_enhancer.html` to expose scale/model options (blocked until model runtime works)
-
-- [ ] Update `enhancer/models.py` if we need to store scale/model metadata (or embed into `notes`)
-- [ ] Update `requirements.txt` with Real-ESRGAN / torch dependencies
-
-## Part B — Detailed website pages
-- [ ] Add shared partials (features/how-it-works/FAQ) under `enhancer/templates/enhancer/partials/`
-- [ ] Update `home.html`, `ai_enhancer.html`, `manual.html`, `batch.html`, `history.html` to include those sections
-- [ ] Extend `static/css/style.css` for accordion/longform layout
-
-## Validation
-- [ ] Install deps and run Django
-- [ ] Ensure ONNX runtime import works (already installed)
-- [ ] Upload test image in AI mode and confirm output differs due to super-resolution (not brightness)
-- [ ] Manually check all pages render correctly
-
+## AI mode / ONNX correctness (next)
+- [ ] Replace silent fallback in enhancer/ai_engine.py when ONNX weights are missing
+- [ ] Wire in real ONNX model:
+  - [ ] auto-download if missing
+  - [ ] hard-fail with clear message if download/model missing
+- [ ] Validate runtime end-to-end

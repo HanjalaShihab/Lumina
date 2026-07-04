@@ -2,40 +2,161 @@
 {% block title %}Batch Enhance | Lumina{% endblock %}
 {% block content %}
 <section class="batch-layout">
-<div class="tool-panel wide">
-  <div class="section-heading">
-    <p class="eyebrow">Batch mode</p>
-    <h1>Enhance multiple images</h1>
-    <p>Run the precision model across a set of images and download the completed outputs.</p>
+  <div class="tool-panel wide" data-reveal>
+    <div class="section-heading">
+      <p class="eyebrow">
+        <span class="glow-dot"></span>
+        Batch mode
+      </p>
+      <h1>
+        <span class="gradient-text">Enhance multiple</span>
+        <span class="version-badge">Multi</span>
+      </h1>
+      <p>Run the neon-clean pipeline across a set of photos and get download links instantly.</p>
+    </div>
+
+    {% include "enhancer/partials/form_errors.html" %}
+
+    <form class="upload-form" method="post" enctype="multipart/form-data" id="batchForm">
+      {% csrf_token %}
+
+      <label class="dropzone" title="Choose multiple images" id="dropzone">
+        <div class="dropzone-content">
+          <span class="dropzone-icon">📁</span>
+          <span class="dropzone-text">Drop multiple images here or click to browse</span>
+          <span class="dropzone-hint">Supports up to 10 images simultaneously</span>
+        </div>
+        {{ form.images }}
+      </label>
+
+      <div class="batch-preview" id="batchPreview" style="display:none;">
+        <div class="batch-preview-header">
+          <span>Selected images: <span id="imageCount">0</span></span>
+          <button type="button" class="clear-btn" id="clearBatch">Clear all</button>
+        </div>
+        <div class="batch-thumbnails" id="batchThumbnails"></div>
+      </div>
+
+      <div class="upload-progress" id="uploadProgress" style="display:none;">
+        <div class="progress-bar">
+          <div class="progress-fill" style="width: 0%;"></div>
+        </div>
+        <span class="progress-text">Processing 0/0</span>
+      </div>
+
+      <button class="primary" type="submit" data-reveal id="batchBtn">
+        <span class="btn-content">
+          <span class="btn-icon">⚡</span>
+          Enhance batch
+          <span class="btn-shimmer"></span>
+        </span>
+      </button>
+
+      <div class="form-footer">
+        <div class="muted" style="font-family: var(--mono); font-size:12px; letter-spacing:.02em;">
+          💡 Tip: Upload a whole set from the same session for best consistency.
+        </div>
+        <div class="muted" style="font-family: var(--mono); font-size:12px; letter-spacing:.02em;">
+          📊 Batch processing up to 10 images at once
+        </div>
+      </div>
+    </form>
   </div>
-  {% include "enhancer/partials/form_errors.html" %}
-  <form class="upload-form" method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    <label class="dropzone">
-      <span>Choose images</span>
-      {{ form.images }}
-    </label>
-    <button class="primary" type="submit">Enhance batch</button>
-  </form>
-</div>
-<aside class="process-panel">
-  <span>Batch pipeline</span>
-  <ol>
-    <li>Normalize color cast</li>
-    <li>Recover tonal range</li>
-    <li>Shape local contrast</li>
-    <li>Clean noise and sharpen edges</li>
-  </ol>
-</aside>
+
+  <aside class="process-panel" data-reveal>
+    <div class="process-header">
+      <span style="font-family: var(--mono); font-size:12px; letter-spacing:.10em; text-transform:uppercase; color: rgba(34,211,238,.88);">
+        ⚙️ Batch pipeline
+      </span>
+      <span class="process-status" id="processStatus">Ready</span>
+    </div>
+    <ol class="process-steps">
+      <li class="step-item" data-step="1">
+        <span class="step-number">1</span>
+        Normalize color cast
+        <span class="step-status">✓</span>
+      </li>
+      <li class="step-item" data-step="2">
+        <span class="step-number">2</span>
+        Recover tonal range
+        <span class="step-status">✓</span>
+      </li>
+      <li class="step-item" data-step="3">
+        <span class="step-number">3</span>
+        Shape local contrast
+        <span class="step-status">✓</span>
+      </li>
+      <li class="step-item" data-step="4">
+        <span class="step-number">4</span>
+        Clean noise + sharpen edges
+        <span class="step-status">✓</span>
+      </li>
+    </ol>
+    <div class="process-stats">
+      <div class="stat-item">
+        <span class="stat-label">Images</span>
+        <span class="stat-value" id="batchCount">0</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Est. time</span>
+        <span class="stat-value" id="batchTime">0s</span>
+      </div>
+    </div>
+  </aside>
+</section>
+
+<section class="info-band">
+  <article class="info-card" data-reveal>
+    <span class="info-head">⚙️ How it works</span>
+    <p>
+      Lumina applies the same correction profile to each image, producing consistent, ready-to-export neon renders.
+    </p>
+    <div class="info-stats">
+      <span>Batch processing</span>
+      <span>Consistent results</span>
+    </div>
+  </article>
+  <article class="info-card" data-reveal>
+    <span class="info-head">🌟 Quality</span>
+    <p>
+      Prioritizes tonal stability and edge clarity—so batch outputs don't drift or over-sharpen.
+    </p>
+    <div class="info-stats">
+      <span>⭐ 4.7/5 rating</span>
+      <span>100% consistency</span>
+    </div>
+  </article>
+  <article class="info-card" data-reveal>
+    <span class="info-head">📦 What you get</span>
+    <p>
+      Download links for every enhanced image, plus model notes available in History for comparison.
+    </p>
+    <div class="info-stats">
+      <span>Bulk download</span>
+      <span>Organized output</span>
+    </div>
+  </article>
 </section>
 
 {% if results %}
-<section class="result-grid">
+<section class="result-grid" data-reveal>
   {% for result in results %}
-    <article class="image-card">
-      <img src="{{ result.enhanced.url }}" alt="{{ result.title|default:'Enhanced image' }}">
-      <span>{{ result.title|default:"Untitled" }}</span>
-      <a class="text-link" href="{{ result.enhanced.url }}" download>Download</a>
+    <article class="image-card batch-result">
+      <div class="image-wrapper">
+        {% if result.enhanced %}
+          <img src="{{ result.enhanced.url }}" alt="{{ result.title|default:'Enhanced image' }}" loading="lazy">
+          <div class="image-overlay">
+            <span class="batch-index">#{{ forloop.counter }}</span>
+          </div>
+        {% endif %}
+      </div>
+      <span class="image-title">{{ result.title|default:"Untitled" }}</span>
+      {% if result.enhanced %}
+        <a class="text-link download-link" href="{{ result.enhanced.url }}" download>
+          <span class="link-icon">⬇️</span>
+          Download
+        </a>
+      {% endif %}
     </article>
   {% endfor %}
 </section>

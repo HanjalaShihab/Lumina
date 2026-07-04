@@ -2,41 +2,155 @@
 {% block title %}History | Lumina{% endblock %}
 {% block content %}
 <section class="history-head">
-  <div class="section-heading">
-    <p class="eyebrow">Saved work</p>
-    <h1>{% if focused %}{{ focused.title|default:"Enhancement" }}{% else %}History{% endif %}</h1>
-    <p>Review original and enhanced files with model notes for each render.</p>
+  <div class="section-heading" data-reveal>
+    <p class="eyebrow">
+      <span class="glow-dot"></span>
+      Saved work
+    </p>
+    <h1>
+      {% if focused %}
+        {{ focused.title|default:"Enhancement" }}
+      {% else %}
+        <span class="gradient-text">History</span>
+        <span class="version-badge">{{ jobs|length }}</span>
+      {% endif %}
+    </h1>
+    <p>Neon timeline of every render—compare originals, enhanced outputs, and model notes instantly.</p>
   </div>
+
+  <div class="history-filters" data-reveal>
+    <button class="filter-btn active" data-filter="all">All</button>
+    <button class="filter-btn" data-filter="ai">AI Enhanced</button>
+    <button class="filter-btn" data-filter="manual">Manual</button>
+    <button class="filter-btn" data-filter="batch">Batch</button>
+    <div class="search-box">
+      <input type="text" placeholder="Search history..." id="historySearch">
+      <span class="search-icon">🔍</span>
+    </div>
+  </div>
+</section>
+
+<section class="info-band">
+  <article class="info-card" data-reveal>
+    <span class="info-head">📊 How it works</span>
+    <p>
+      Every enhancement saves a "Model notes" snapshot—so you can compare what changed and why for each image.
+    </p>
+    <div class="info-stats">
+      <span>Auto-saved</span>
+      <span>Version control</span>
+    </div>
+  </article>
+  <article class="info-card" data-reveal>
+    <span class="info-head">🌟 Quality</span>
+    <p>
+      Notes include mode + timestamp, helping you reproduce results across similar lighting and scenes.
+    </p>
+    <div class="info-stats">
+      <span>Reproducible</span>
+      <span>Consistent output</span>
+    </div>
+  </article>
+  <article class="info-card" data-reveal>
+    <span class="info-head">📦 What you get</span>
+    <p>
+      Download enhanced outputs anytime—your renders stay organized with a premium side-by-side comparison.
+    </p>
+    <div class="info-stats">
+      <span>Unlimited storage</span>
+      <span>Organized timeline</span>
+    </div>
+  </article>
 </section>
 
 {% if jobs %}
 <section class="history-list">
   {% for job in jobs %}
-    <article class="history-item">
+    <article class="history-item" data-reveal data-mode="{{ job.mode|lower }}">
       <div class="comparison">
-        <div>
-          <span>Original</span>
-          <img src="{{ job.original.url }}" alt="Original image">
+        <div class="comparison-original">
+          <span>
+            <span class="comparison-icon">📷</span>
+            Original
+          </span>
+          <img src="{{ job.original.url }}" alt="Original image" loading="lazy">
+          <div class="comparison-meta">
+            <span class="meta-label">Size</span>
+            <span>{{ job.original.size|filesizeformat }}</span>
+          </div>
         </div>
         {% if job.enhanced %}
-        <div>
-          <span>Enhanced</span>
-          <img src="{{ job.enhanced.url }}" alt="Enhanced image">
-        </div>
+          <div class="comparison-enhanced">
+            <span>
+              <span class="comparison-icon">✨</span>
+              Enhanced
+              <span class="comparison-badge">v{{ job.version|default:"1.0" }}</span>
+            </span>
+            <img src="{{ job.enhanced.url }}" alt="Enhanced image" loading="lazy">
+            <div class="comparison-meta">
+              <span class="meta-label">Mode</span>
+              <span class="mode-tag">{{ job.get_mode_display }}</span>
+            </div>
+          </div>
         {% endif %}
       </div>
+
       <div class="meta">
-        <h2>{{ job.title|default:"Untitled" }}</h2>
-        <p>{{ job.notes }}</p>
-        <p>{{ job.get_mode_display }} · {{ job.created_at|date:"M j, Y g:i A" }}</p>
-        {% if job.enhanced %}
-          <a class="button-link" href="{{ job.enhanced.url }}" download>Download</a>
+        <div class="meta-header">
+          <h2>{{ job.title|default:"Untitled" }}</h2>
+          <span class="meta-date">{{ job.created_at|date:"M j, Y g:i A" }}</span>
+        </div>
+
+        {% if job.notes %}
+          <div class="notes-block">
+            <span class="notes-icon">📝</span>
+            <p>{{ job.notes }}</p>
+          </div>
+        {% else %}
+          <p class="muted" style="font-family: var(--mono);">
+            No model notes for this run.
+          </p>
         {% endif %}
+
+        <div class="meta-actions">
+          {% if job.enhanced %}
+            <a class="button-link" href="{{ job.enhanced.url }}" download>
+              <span class="btn-icon">⬇️</span>
+              Download
+            </a>
+            {% if not focused %}
+              <a class="button-link" href="{% url 'enhancer:detail' job.pk %}">
+                <span class="btn-icon">👁️</span>
+                Open detail
+              </a>
+            {% endif %}
+            <button class="button-link" onclick="compareImages('{{ job.original.url }}', '{{ job.enhanced.url }}')">
+              <span class="btn-icon">🔄</span>
+              Compare
+            </button>
+          {% endif %}
+        </div>
       </div>
     </article>
   {% endfor %}
 </section>
+
+<div class="history-pagination" data-reveal>
+  <button class="pagination-btn" disabled>← Previous</button>
+  <span class="pagination-info">Page 1 of 1</span>
+  <button class="pagination-btn" disabled>Next →</button>
+</div>
+
 {% else %}
-<div class="empty-state">No enhanced images yet.</div>
+<div class="empty-state" data-reveal>
+  <div class="empty-content">
+    <span class="empty-icon">📭</span>
+    <span>No enhanced images yet.</span>
+    <span class="empty-hint">Upload an image on the Home page to generate your first neon render.</span>
+    <a href="{% url 'enhancer:home' %}" class="primary" style="margin-top: 14px; display: inline-block; text-decoration: none;">
+      Start enhancing →
+    </a>
+  </div>
+</div>
 {% endif %}
 {% endblock %}
