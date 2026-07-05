@@ -10,6 +10,8 @@ from .ai_engine import enhance_image, remove_background
 from .forms import BatchEnhancementForm, BackgroundRemovalForm, ImageUploadForm, ManualEnhancementForm
 from .models import EnhancementJob
 
+import uuid
+
 
 def upgrade(request):
     """Token upgrade page"""
@@ -39,7 +41,6 @@ def signup(request):
     return render(request, "registration/signup.html", {"form": form})
 
 
-@login_required
 def manual(request):
     """Manual enhancement view"""
     result = None
@@ -47,7 +48,13 @@ def manual(request):
         form = ManualEnhancementForm(request.POST, request.FILES)
         if form.is_valid():
             job = form.save(commit=False)
-            job.user = request.user
+            if request.user.is_authenticated:
+                job.user = request.user
+            else:
+                # Create a temporary user or use None (requires model change)
+                # For now, redirect to login
+                messages.info(request, "Please login or register to use manual enhancement.")
+                return redirect("enhancer:home")
             job.mode = EnhancementJob.MODE_MANUAL
             job.save()
             manual_adjustments = {
@@ -69,7 +76,6 @@ def manual(request):
     return render(request, "enhancer/manual.html", {"form": form, "result": result})
 
 
-@login_required
 def ai_enhancer(request):
     """AI enhancement view"""
     result = None
@@ -77,7 +83,16 @@ def ai_enhancer(request):
         form = ImageUploadForm(request.POST, request.FILES)
         if form.is_valid():
             job = form.save(commit=False)
-            job.user = request.user
+            if request.user.is_authenticated:
+                job.user = request.user
+            else:
+                # For anonymous users, we need to handle differently
+                # For now, allow but show message
+                messages.info(request, "You're using free tokens. Login to save your enhancements and get more tokens.")
+                # Create a temporary user ID for session (simplified)
+                # We'll still save job but user will be None (requires model change)
+                # For demo, redirect to login
+                return redirect("enhancer:home")
             job.mode = EnhancementJob.MODE_AI
             job.save()
             result = enhance_image(job, mode="ai")

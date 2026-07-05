@@ -7,6 +7,8 @@ class EnhancementJob(models.Model):
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="enhancements",
+        null=True,
+        blank=True,
     )
     MODE_MANUAL = "manual"
     MODE_AI = "ai"
