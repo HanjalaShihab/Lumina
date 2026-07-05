@@ -10,6 +10,7 @@ urlpatterns = [
     path("manual/", views.manual, name="manual"),
     path("ai/", views.ai_enhancer, name="ai_enhancer"),
     path("batch/", views.batch, name="batch"),
+    path("background/", views.background_remover, name="background_remover"),
     path("history/", views.history, name="history"),
     path("history/<int:pk>/", views.detail, name="detail"),
     path("upgrade/", views.upgrade, name="upgrade"),

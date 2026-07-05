@@ -1,0 +1,250 @@
+{% extends "enhancer/base.html" %}
+{% block title %}Background Remover | Lumina{% endblock %}
+{% block content %}
+
+<div style="padding:24px 0;">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:24px;">
+    <div>
+      <h1 style="font-size:32px;font-weight:700;margin-bottom:4px;">Background Remover</h1>
+      <p style="color:var(--text-secondary);font-size:16px;">Isolate your subject and export a transparent PNG with clean edges</p>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <span style="padding:4px 14px;border-radius:999px;background:rgba(52,211,153,0.08);border:1px solid rgba(52,211,153,0.15);font-size:12px;color:#34d399;">Transparent PNG</span>
+      <span style="padding:4px 14px;border-radius:999px;background:var(--bg-card);border:1px solid var(--border-color);font-size:12px;color:var(--text-muted);">Alpha cutout</span>
+    </div>
+  </div>
+
+  <div class="tool-layout">
+    <div class="tool-panel">
+      <div class="model-card" style="margin-bottom:20px;">
+        <div class="header">
+          <span>🪄 Active Model</span>
+          <span style="color:#00e676;font-size:12px;">● Ready</span>
+        </div>
+        <div class="name">Lumina Subject Cutout</div>
+        <div class="desc">Removes the background with edge-aware segmentation and exports a transparent PNG ready for compositing.</div>
+        <div class="tags">
+          <span class="tag">GrabCut segmentation</span>
+          <span class="tag">Transparent export</span>
+          <span class="tag">History saved</span>
+        </div>
+      </div>
+
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div class="form-group">
+          <label class="form-label">Image title</label>
+          <input class="form-input" type="text" name="title" placeholder="Optional image title">
+        </div>
+
+        <label class="dropzone" data-preview-mode="image" style="margin-bottom:18px;">
+          <span class="icon">🖼️</span>
+          <img class="dropzone-preview" alt="Selected image preview" style="display:none;max-width:100%;max-height:140px;object-fit:cover;border-radius:var(--radius-sm);border:1px solid var(--border-color);margin-bottom:4px;">
+          <span class="text">Drop your image here or click to remove the background</span>
+          <span class="hint">JPG, PNG, WebP · transparent PNG output</span>
+          <input type="file" name="original" accept="image/*" required style="display:none;">
+        </label>
+
+        <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:0 0 22px;">
+          <div style="padding:12px 14px;border-radius:var(--radius-sm);border:1px solid var(--border-color);background:var(--bg-input);font-size:13px;color:var(--text-secondary);min-height:48px;display:flex;align-items:center;gap:10px;">
+            <span style="font-size:16px;">✦</span>
+            <span>Edge-aware cutout</span>
+          </div>
+          <div style="padding:12px 14px;border-radius:var(--radius-sm);border:1px solid var(--border-color);background:var(--bg-input);font-size:13px;color:var(--text-secondary);min-height:48px;display:flex;align-items:center;gap:10px;">
+            <span style="font-size:16px;">🪶</span>
+            <span>Soft alpha mask</span>
+          </div>
+          <div style="padding:12px 14px;border-radius:var(--radius-sm);border:1px solid var(--border-color);background:var(--bg-input);font-size:13px;color:var(--text-secondary);min-height:48px;display:flex;align-items:center;gap:10px;">
+            <span style="font-size:16px;">📦</span>
+            <span>Saved to history</span>
+          </div>
+        </div>
+
+        <button class="btn btn-primary btn-block" type="submit">
+          ✦ Remove Background
+        </button>
+
+        <div style="margin-top:12px;display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--text-muted);">
+          <span>💡 Best on clear foreground subjects</span>
+          <span>⚡ Transparent PNG export</span>
+          <span>✦ 1 token per image</span>
+        </div>
+      </form>
+    </div>
+
+    <div class="preview-panel" style="position:relative;">
+      <div class="header">
+        <span class="title">Preview</span>
+        <span style="color:var(--text-muted);font-size:12px;">Original → Cutout</span>
+      </div>
+
+      <div id="bgRemoveLoading" style="display:none;position:absolute;inset:72px 40px 40px;z-index:5;border-radius:var(--radius-lg);border:1px solid rgba(52,211,153,0.18);background:rgba(8,8,14,0.84);backdrop-filter:blur(10px);align-items:center;justify-content:center;text-align:center;padding:32px;">
+        <div style="max-width:280px;width:100%;">
+          <div style="width:56px;height:56px;margin:0 auto 14px;border-radius:50%;border:4px solid rgba(52,211,153,0.15);border-top-color:#34d399;animation:bgRemoveSpin 0.9s linear infinite;"></div>
+          <div style="font-size:16px;font-weight:600;color:var(--text-primary);margin-bottom:6px;">Removing background</div>
+          <div style="font-size:13px;color:var(--text-muted);line-height:1.5;">Preparing the cutout. This can take a few seconds for larger images.</div>
+          <div style="margin-top:16px;height:8px;border-radius:999px;background:rgba(255,255,255,0.08);overflow:hidden;border:1px solid rgba(52,211,153,0.16);">
+            <div id="bgRemoveProgressFill" style="width:0%;height:100%;border-radius:999px;background:linear-gradient(90deg, #34d399, #6ee7b7);transition:width 0.15s linear;"></div>
+          </div>
+          <div style="margin-top:10px;font-size:12px;font-weight:600;letter-spacing:0.04em;color:#9ae6b4;display:flex;justify-content:space-between;align-items:center;">
+            <span>Loading</span>
+            <span id="bgRemoveProgressText">0%</span>
+          </div>
+        </div>
+      </div>
+
+      {% if result %}
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+          <div class="cutout-stage">
+            <div class="cutout-label">Original</div>
+            <img src="{{ result.original.url }}" alt="Original image" class="cutout-image preview-shot">
+          </div>
+          <div class="cutout-stage checkerboard">
+            <div class="cutout-label">Background Removed</div>
+            <img src="{{ result.enhanced.url }}" alt="Background removed image" class="cutout-image preview-shot">
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <a href="{{ result.enhanced.url }}" download class="btn btn-primary" style="flex:1;text-decoration:none;">⬇ Download PNG</a>
+          <a href="{% url 'enhancer:history' %}" class="btn btn-secondary" style="text-decoration:none;">View History</a>
+        </div>
+      {% else %}
+        <div class="cutout-stage checkerboard" style="min-height:320px;display:flex;align-items:center;justify-content:center;">
+          <div style="text-align:center;max-width:320px;">
+            <div style="font-size:54px;opacity:0.35;margin-bottom:10px;">🪄</div>
+            <div style="font-size:16px;font-weight:600;color:var(--text-secondary);margin-bottom:6px;">Your cutout preview appears here</div>
+            <div style="font-size:13px;color:var(--text-muted);">The output stays transparent so you can place it on any background.</div>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:24px;">
+    <div class="info-card">
+      <span class="label">🪄 How it works</span>
+      <div class="content">Lumina isolates the subject using segmentation and preserves edge detail for a cleaner cutout.</div>
+      <div class="stats"><span>Transparent output</span><span>Edge-aware</span></div>
+    </div>
+    <div class="info-card">
+      <span class="label">🌟 Quality</span>
+      <div class="content">Designed for product shots, portraits, and subject-focused images with strong foreground separation.</div>
+      <div class="stats"><span>Alpha mask</span><span>Clean export</span></div>
+    </div>
+    <div class="info-card">
+      <span class="label">📦 What you get</span>
+      <div class="content">A downloadable PNG with transparency, plus a saved job in history for later access.</div>
+      <div class="stats"><span>PNG file</span><span>Saved in history</span></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function () {
+    const dropzone = document.querySelector('.dropzone[data-preview-mode="image"]');
+    if (!dropzone) return;
+
+    const input = dropzone.querySelector('input[type="file"]');
+    const icon = dropzone.querySelector('.icon');
+    const text = dropzone.querySelector('.text');
+    const hint = dropzone.querySelector('.hint');
+    const preview = dropzone.querySelector('.dropzone-preview');
+
+    if (!input || !preview) return;
+
+    let previewUrl = null;
+
+    function resetPreview() {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+        previewUrl = null;
+      }
+      preview.removeAttribute('src');
+      preview.style.display = 'none';
+      if (icon) icon.style.display = 'block';
+      if (text) text.textContent = 'Drop your image here or click to remove the background';
+      if (hint) hint.textContent = 'JPG, PNG, WebP · transparent PNG output';
+    }
+
+    input.addEventListener('change', () => {
+      const file = input.files && input.files[0];
+      if (!file || !file.type.startsWith('image/')) {
+        resetPreview();
+        return;
+      }
+
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+
+      previewUrl = URL.createObjectURL(file);
+      preview.src = previewUrl;
+      preview.style.display = 'block';
+      if (icon) icon.style.display = 'none';
+      if (text) text.textContent = 'Image preview';
+      if (hint) hint.textContent = 'Image selected. Submit to remove the background.';
+    });
+
+    input.addEventListener('click', () => {
+      input.value = '';
+      resetPreview();
+    });
+  })();
+
+  (function () {
+    const form = document.querySelector('.tool-panel form');
+    const loading = document.getElementById('bgRemoveLoading');
+    const progressFill = document.getElementById('bgRemoveProgressFill');
+    const progressText = document.getElementById('bgRemoveProgressText');
+    const submitButton = form ? form.querySelector('button[type="submit"]') : null;
+
+    if (!form || !loading || !submitButton) return;
+
+    let loadingTimer = null;
+    let loadingProgress = 0;
+
+    function updateProgress(value) {
+      loadingProgress = Math.max(0, Math.min(value, 95));
+      if (progressFill) progressFill.style.width = loadingProgress + '%';
+      if (progressText) progressText.textContent = Math.round(loadingProgress) + '%';
+    }
+
+    function startLoading() {
+      loading.style.display = 'flex';
+      submitButton.disabled = true;
+      submitButton.innerHTML = '<span style="display:flex;align-items:center;gap:8px;justify-content:center;">⏳ Removing background...</span>';
+      updateProgress(0);
+
+      let direction = 1;
+      loadingTimer = window.setInterval(() => {
+        const step = loadingProgress < 30 ? 6 : loadingProgress < 70 ? 3 : 1;
+        const nextValue = loadingProgress + (step * direction);
+        if (nextValue >= 95) {
+          updateProgress(95);
+          direction = 0;
+          return;
+        }
+        updateProgress(nextValue);
+      }, 140);
+    }
+
+    form.addEventListener('submit', () => {
+      if (loadingTimer) window.clearInterval(loadingTimer);
+      startLoading();
+    });
+
+    window.addEventListener('beforeunload', () => {
+      if (loadingTimer) window.clearInterval(loadingTimer);
+    });
+  })();
+</script>
+
+<style>
+  @keyframes bgRemoveSpin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+</style>
+
+{% endblock %}

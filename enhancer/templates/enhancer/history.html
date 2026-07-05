@@ -42,7 +42,7 @@
 
   <!-- Stats Summary -->
   {% if page_obj %}
-  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px;">
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:24px;">
     <div style="background:var(--bg-card);border:1px solid var(--border-color);border-radius:var(--radius-md);padding:14px 16px;text-align:center;">
       <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.04em;">Total Enhances</div>
       <div style="font-size:22px;font-weight:700;color:var(--text-primary);">{{ page_obj.paginator.count }}</div>
@@ -58,6 +58,10 @@
     <div style="background:var(--bg-card);border:1px solid var(--border-color);border-radius:var(--radius-md);padding:14px 16px;text-align:center;">
       <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.04em;">Batch Processed</div>
       <div style="font-size:22px;font-weight:700;color:#fbbf24;">{{ batch_count|default:"0" }}</div>
+    </div>
+    <div style="background:var(--bg-card);border:1px solid var(--border-color);border-radius:var(--radius-md);padding:14px 16px;text-align:center;">
+      <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.04em;">BG Removed</div>
+      <div style="font-size:22px;font-weight:700;color:#34d399;">{{ background_count|default:"0" }}</div>
     </div>
   </div>
   {% endif %}
@@ -90,6 +94,7 @@
       <button class="filter-btn" data-filter="ai">🤖 AI</button>
       <button class="filter-btn" data-filter="manual">🎛️ Manual</button>
       <button class="filter-btn" data-filter="batch">📁 Batch</button>
+      <button class="filter-btn" data-filter="background">🪄 BG</button>
     </div>
     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
       <div class="search-box">
@@ -117,6 +122,7 @@
               <span style="padding:2px 12px;border-radius:999px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;
                 {% if job.get_mode_display == 'AI' %}background:rgba(167,139,250,0.1);border:1px solid rgba(167,139,250,0.15);color:#a78bfa;
                 {% elif job.get_mode_display == 'Manual' %}background:rgba(34,211,238,0.1);border:1px solid rgba(34,211,238,0.15);color:#22d3ee;
+                {% elif job.get_mode_display == 'Background Removal' %}background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.15);color:#34d399;
                 {% else %}background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.15);color:#fbbf24;{% endif %}">
                 {{ job.get_mode_display|default:"AI" }}
               </span>
@@ -143,7 +149,7 @@
                 <span>{{ job.original.name|slice:"-4"|upper }}</span>
               </div>
             </div>
-            {% if job.enhanced %}
+            {% if job.enhanced.name %}
               <div class="comparison-enhanced">
                 <span class="label">
                   <span class="comparison-icon">✨</span>
@@ -196,7 +202,7 @@
                   👁️ Detail
                 </a>
               {% endif %}
-              <button class="btn btn-secondary" onclick="toggleComparison(this, '{{ job.original.url }}', '{{ job.enhanced.url|default:'' }}')" style="padding:6px 16px;font-size:12px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;">
+              <button class="btn btn-secondary" onclick="toggleComparison(this, '{{ job.original.url }}', '{% if job.enhanced.name %}{{ job.enhanced.url }}{% endif %}')" style="padding:6px 16px;font-size:12px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;">
                 🔄 Compare
               </button>
               <button class="btn btn-secondary" onclick="deleteJob({{ job.id }})" style="padding:6px 16px;font-size:12px;cursor:pointer;color:#fd79a8;border-color:rgba(253,121,168,0.2);display:inline-flex;align-items:center;gap:6px;">
@@ -437,7 +443,7 @@ function deleteJob(id) {
     const csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
     const csrf = csrfInput ? csrfInput.value : '';
     
-    fetch(`/enhancer/delete/${id}/`, {
+    fetch(`/delete/${id}/`, {
       method: 'POST',
       headers: {
         'X-CSRFToken': csrf || '',

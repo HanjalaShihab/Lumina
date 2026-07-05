@@ -7,6 +7,18 @@
   <meta name="theme-color" content="#08080e">
   <title>{% block title %}Lumina — AI Image Enhancer{% endblock %}</title>
 
+  <script>
+    (function () {
+      var storageKey = 'lumina-theme';
+      var savedTheme = localStorage.getItem(storageKey);
+      var preferredTheme = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+      var theme = savedTheme || preferredTheme;
+      document.documentElement.dataset.theme = theme;
+      var themeColor = theme === 'light' ? '#f4f7fb' : '#08080e';
+      document.querySelector('meta[name="theme-color"]').setAttribute('content', themeColor);
+    })();
+  </script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -35,19 +47,29 @@
 
       <nav class="nav">
         <a class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}" href="{% url 'enhancer:home' %}">Home</a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'ai_enhancer' %}active{% endif %}" href="{% url 'enhancer:ai_enhancer' %}">AI Enhance</a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'manual' %}active{% endif %}" href="{% url 'enhancer:manual' %}">Manual</a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'batch' %}active{% endif %}" href="{% url 'enhancer:batch' %}">Batch</a>
+        <details class="nav-dropdown {% if request.resolver_match.url_name == 'ai_enhancer' or request.resolver_match.url_name == 'manual' or request.resolver_match.url_name == 'batch' or request.resolver_match.url_name == 'background_remover' %}active{% endif %}">
+          <summary class="nav-link nav-dropdown-toggle {% if request.resolver_match.url_name == 'ai_enhancer' or request.resolver_match.url_name == 'manual' or request.resolver_match.url_name == 'batch' or request.resolver_match.url_name == 'background_remover' %}active{% endif %}">Services</summary>
+          <div class="nav-dropdown-menu">
+            <a class="nav-dropdown-link {% if request.resolver_match.url_name == 'ai_enhancer' %}active{% endif %}" href="{% url 'enhancer:ai_enhancer' %}">AI Enhancement</a>
+            <a class="nav-dropdown-link {% if request.resolver_match.url_name == 'manual' %}active{% endif %}" href="{% url 'enhancer:manual' %}">Manual Enhancement</a>
+            <a class="nav-dropdown-link {% if request.resolver_match.url_name == 'batch' %}active{% endif %}" href="{% url 'enhancer:batch' %}">Batch Enhancement</a>
+            <a class="nav-dropdown-link {% if request.resolver_match.url_name == 'background_remover' %}active{% endif %}" href="{% url 'enhancer:background_remover' %}">BG Remover</a>
+          </div>
+        </details>
         <a class="nav-link {% if request.resolver_match.url_name == 'history' %}active{% endif %}" href="{% url 'enhancer:history' %}">History</a>
       </nav>
 
       <div class="nav-right">
+        <button type="button" class="btn-nav theme-toggle" id="themeToggle" aria-label="Toggle day mode">Day mode</button>
         <div class="token-display">
           <span class="coin">✦</span>
           <span>{% if user.is_authenticated %}{{ user.profile.tokens|default:50 }}{% else %}50{% endif %}</span>
         </div>
         {% if user.is_authenticated %}
-          <a href="{% url 'logout' %}" class="btn-nav" style="background:transparent;border:1px solid var(--border-color);box-shadow:none;">Sign out</a>
+          <form action="{% url 'logout' %}" method="post" style="display:inline-flex;margin:0;">
+            {% csrf_token %}
+            <button type="submit" class="btn-nav" style="background:transparent;border:1px solid var(--border-color);box-shadow:none;">Sign out</button>
+          </form>
         {% else %}
           <a href="{% url 'login' %}" class="btn-nav" style="background:transparent;border:1px solid var(--border-color);box-shadow:none;">Sign in</a>
           <a href="{% url 'enhancer:signup' %}" class="btn-nav">Get Started</a>
@@ -95,9 +117,10 @@
         <div>
           <h4 style="font-size:14px;font-weight:600;margin-bottom:8px;">Product</h4>
           <ul style="list-style:none;padding:0;">
-            <li><a href="{% url 'enhancer:ai_enhancer' %}" style="color:var(--text-secondary);text-decoration:none;font-size:13px;line-height:2;">AI Enhance</a></li>
-            <li><a href="{% url 'enhancer:manual' %}" style="color:var(--text-secondary);text-decoration:none;font-size:13px;line-height:2;">Manual</a></li>
-            <li><a href="{% url 'enhancer:batch' %}" style="color:var(--text-secondary);text-decoration:none;font-size:13px;line-height:2;">Batch</a></li>
+            <li><a href="{% url 'enhancer:ai_enhancer' %}" style="color:var(--text-secondary);text-decoration:none;font-size:13px;line-height:2;">AI Enhancement</a></li>
+            <li><a href="{% url 'enhancer:manual' %}" style="color:var(--text-secondary);text-decoration:none;font-size:13px;line-height:2;">Manual Enhancement</a></li>
+            <li><a href="{% url 'enhancer:batch' %}" style="color:var(--text-secondary);text-decoration:none;font-size:13px;line-height:2;">Batch Enhancement</a></li>
+            <li><a href="{% url 'enhancer:background_remover' %}" style="color:var(--text-secondary);text-decoration:none;font-size:13px;line-height:2;">BG Remover</a></li>
           </ul>
         </div>
         <div>

@@ -11,11 +11,13 @@ class EnhancementJob(models.Model):
     MODE_MANUAL = "manual"
     MODE_AI = "ai"
     MODE_BATCH = "batch"
+    MODE_BACKGROUND = "background"
 
     MODE_CHOICES = [
         (MODE_MANUAL, "Manual"),
         (MODE_AI, "AI Enhanced"),
         (MODE_BATCH, "Batch"),
+        (MODE_BACKGROUND, "Background Removal"),
     ]
 
     title = models.CharField(max_length=120, blank=True)

@@ -6,8 +6,8 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
-from .ai_engine import enhance_image
-from .forms import BatchEnhancementForm, ImageUploadForm, ManualEnhancementForm
+from .ai_engine import enhance_image, remove_background
+from .forms import BatchEnhancementForm, BackgroundRemovalForm, ImageUploadForm, ManualEnhancementForm
 from .models import EnhancementJob
 
 
@@ -50,7 +50,19 @@ def manual(request):
             job.user = request.user
             job.mode = EnhancementJob.MODE_MANUAL
             job.save()
-            result = enhance_image(job, mode="manual")
+            manual_adjustments = {
+                "color": request.POST.get("color", "50"),
+                "tone": request.POST.get("tone", "50"),
+                "contrast": request.POST.get("contrast", "50"),
+                "vibrance": request.POST.get("vibrance", "50"),
+                "denoise": request.POST.get("denoise", "50"),
+                "sharpen": request.POST.get("sharpen", "50"),
+                "exposure": request.POST.get("exposure", "50"),
+                "warmth": request.POST.get("warmth", "50"),
+                "shadows": request.POST.get("shadows", "50"),
+                "highlights": request.POST.get("highlights", "50"),
+            }
+            result = enhance_image(job, mode="manual", adjustments=manual_adjustments)
             messages.success(request, "Manual enhancement complete.")
     else:
         form = ManualEnhancementForm()
@@ -98,6 +110,24 @@ def batch(request):
 
 
 @login_required
+def background_remover(request):
+    """Background removal view"""
+    result = None
+    if request.method == "POST":
+        form = BackgroundRemovalForm(request.POST, request.FILES)
+        if form.is_valid():
+            job = form.save(commit=False)
+            job.user = request.user
+            job.mode = EnhancementJob.MODE_BACKGROUND
+            job.save()
+            result = remove_background(job)
+            messages.success(request, "Background removal complete.")
+    else:
+        form = BackgroundRemovalForm()
+    return render(request, "enhancer/background_remover.html", {"form": form, "result": result})
+
+
+@login_required
 def history(request):
     """History page with pagination and stats"""
     jobs = EnhancementJob.objects.filter(user=request.user).order_by('-created_at')
@@ -106,6 +136,7 @@ def history(request):
     ai_count = jobs.filter(mode=EnhancementJob.MODE_AI).count()
     manual_count = jobs.filter(mode=EnhancementJob.MODE_MANUAL).count()
     batch_count = jobs.filter(mode=EnhancementJob.MODE_BATCH).count()
+    background_count = jobs.filter(mode=EnhancementJob.MODE_BACKGROUND).count()
     
     paginator = Paginator(jobs, 10)  # 10 items per page
     
@@ -123,6 +154,7 @@ def history(request):
         'ai_count': ai_count,
         'manual_count': manual_count,
         'batch_count': batch_count,
+        'background_count': background_count,
     }
     return render(request, "enhancer/history.html", context)
 

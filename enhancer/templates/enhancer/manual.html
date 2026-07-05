@@ -10,14 +10,14 @@
     </div>
     <div style="display:flex;gap:8px;">
       <span style="padding:4px 14px;border-radius:999px;background:rgba(108,92,231,0.1);border:1px solid rgba(108,92,231,0.2);font-size:12px;color:var(--text-accent);">Pro Mode</span>
-      <span style="padding:4px 14px;border-radius:999px;background:var(--bg-card);border:1px solid var(--border-color);font-size:12px;color:var(--text-muted);">8 Parameters</span>
+      <span style="padding:4px 14px;border-radius:999px;background:var(--bg-card);border:1px solid var(--border-color);font-size:12px;color:var(--text-muted);">10 Parameters</span>
     </div>
   </div>
 
   <div class="tool-layout">
     <!-- Main Tool -->
     <div class="tool-panel">
-      <form method="post" enctype="multipart/form-data">
+      <form method="post" enctype="multipart/form-data" id="manualForm">
         {% csrf_token %}
 
         <div class="form-group">
@@ -25,11 +25,12 @@
           <input class="form-input" type="text" name="title" placeholder="e.g., Sunset Portrait">
         </div>
 
-        <label class="dropzone" style="margin-bottom:16px;">
+        <label class="dropzone" data-preview-mode="image" style="margin-bottom:16px;">
           <span class="icon">🖼️</span>
+          <img class="dropzone-preview" alt="Selected image preview" style="display:none;max-width:100%;max-height:140px;object-fit:cover;border-radius:var(--radius-sm);border:1px solid var(--border-color);margin-bottom:4px;">
           <span class="text">Drop your image here or click to browse</span>
           <span class="hint">JPG, PNG, WebP · up to 20MB</span>
-          <input type="file" name="original" accept="image/*" required>
+          <input type="file" name="original" id="manualImageInput" accept="image/*" required style="display:none;">
         </label>
 
         <!-- Quick Presets -->
@@ -149,6 +150,32 @@
               <span>Warm</span>
             </div>
           </div>
+
+          <div class="control-group">
+            <div class="header">
+              <span>Shadows</span>
+              <span class="value" id="val_shadows">50</span>
+            </div>
+            <input type="range" name="shadows" min="0" max="100" value="50">
+            <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--text-muted);margin-top:2px;">
+              <span>Deep</span>
+              <span>Balanced</span>
+              <span>Lifted</span>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <div class="header">
+              <span>Highlights</span>
+              <span class="value" id="val_highlights">50</span>
+            </div>
+            <input type="range" name="highlights" min="0" max="100" value="50">
+            <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--text-muted);margin-top:2px;">
+              <span>Soft</span>
+              <span>Neutral</span>
+              <span>Pop</span>
+            </div>
+          </div>
         </div>
 
         <button class="btn btn-primary btn-block" type="submit">
@@ -167,29 +194,28 @@
     <div class="preview-panel">
       <div class="header">
         <span class="title">Preview</span>
-        <span style="color:var(--text-muted);font-size:12px;">Manual Mode</span>
+        <span style="color:var(--text-muted);font-size:12px;">Live preview</span>
       </div>
       
       {% if result %}
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-          <div>
-            <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">Original</div>
-            <img src="{{ result.original.url }}" style="width:100%;border-radius:var(--radius-sm);border:1px solid var(--border-color);">
-          </div>
-          <div>
-            <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">Enhanced</div>
-            <img src="{{ result.enhanced.url }}" style="width:100%;border-radius:var(--radius-sm);border:1px solid var(--border-color);">
-          </div>
+        <div class="cutout-stage checkerboard">
+          <div class="cutout-label">Live result</div>
+          <img src="{{ result.enhanced.url }}" class="preview-shot" alt="Enhanced preview">
         </div>
         <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
           <a href="{{ result.enhanced.url }}" download class="btn btn-primary" style="flex:1;">⬇ Download Enhanced</a>
           <a href="{% url 'enhancer:history' %}" class="btn btn-secondary">View History</a>
         </div>
       {% else %}
-        <div class="empty-state" style="padding:60px 20px;text-align:center;">
-          <span style="font-size:48px;display:block;margin-bottom:12px;opacity:0.3;">🎛️</span>
-          <div style="color:var(--text-secondary);font-size:14px;">Adjust sliders and apply</div>
-          <div style="color:var(--text-muted);font-size:12px;margin-top:4px;">Your enhanced image will appear here</div>
+        <div class="cutout-stage checkerboard">
+          <div class="cutout-label">Live adjustment</div>
+          <div id="manualAdjustedPlaceholder" style="width:100%;aspect-ratio:1/1;min-height:320px;border-radius:var(--radius-sm);border:1px dashed var(--border-color);display:flex;align-items:center;justify-content:center;color:var(--text-muted);background:var(--bg-input);text-align:center;padding:24px;">
+            Drop an image to see the live result here
+          </div>
+          <img id="manualAdjustedPreview" alt="Adjusted preview" class="preview-shot" style="display:none;">
+        </div>
+        <div style="margin-top:12px;font-size:12px;color:var(--text-muted);">
+          Live preview updates as you edit. Submit when the look is right.
         </div>
       {% endif %}
     </div>
@@ -199,8 +225,8 @@
   <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:24px;">
     <div class="info-card">
       <span class="label">🎛️ How it works</span>
-      <div class="content">Choose exact slider values — Lumina applies targeted color, tone, and detail adjustments.</div>
-      <div class="stats"><span>8 parameters</span><span>Fine control</span></div>
+      <div class="content">Choose exact slider values — Lumina applies targeted color, tone, exposure, and detail adjustments.</div>
+      <div class="stats"><span>10 parameters</span><span>Fine control</span></div>
     </div>
     <div class="info-card">
       <span class="label">🌟 Quality</span>
@@ -217,34 +243,112 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  // Update range value displays
-  document.querySelectorAll('.control-group input[type="range"]').forEach(range => {
+  const manualImageInput = document.getElementById('manualImageInput');
+  const adjustedPreview = document.getElementById('manualAdjustedPreview');
+  const adjustedPlaceholder = document.getElementById('manualAdjustedPlaceholder');
+  const uploadDropzone = document.querySelector('.dropzone[data-preview-mode="image"]');
+  const uploadDropzonePreview = uploadDropzone ? uploadDropzone.querySelector('.dropzone-preview') : null;
+  const uploadDropzoneIcon = uploadDropzone ? uploadDropzone.querySelector('.icon') : null;
+  const uploadDropzoneText = uploadDropzone ? uploadDropzone.querySelector('.text') : null;
+  const uploadDropzoneHint = uploadDropzone ? uploadDropzone.querySelector('.hint') : null;
+  const sliders = Array.from(document.querySelectorAll('.control-group input[type="range"]'));
+
+  function sliderValue(name, fallback = 50) {
+    const slider = document.querySelector(`input[name="${name}"]`);
+    return slider ? parseFloat(slider.value || fallback) : fallback;
+  }
+
+  function updateValues() {
+    sliders.forEach(range => {
+      const valDisplay = document.getElementById('val_' + range.name);
+      if (valDisplay) valDisplay.textContent = range.value;
+    });
+  }
+
+  function updatePreviewFilter() {
+    if (!adjustedPreview || adjustedPreview.style.display === 'none') return;
+
+    const exposure = sliderValue('exposure');
+    const contrast = sliderValue('contrast');
+    const vibrance = sliderValue('vibrance');
+    const warmth = sliderValue('warmth');
+    const shadows = sliderValue('shadows');
+    const highlights = sliderValue('highlights');
+    const denoise = sliderValue('denoise');
+
+    const brightness = 0.78 + (exposure / 100) * 0.52 + ((shadows - 50) / 100) * 0.08;
+    const contrastBoost = 0.8 + (contrast / 100) * 0.55 + ((highlights - 50) / 100) * 0.08;
+    const saturation = 0.78 + (vibrance / 100) * 0.7;
+    const sepia = Math.max(0, (warmth - 50) / 50) * 0.18;
+    const hue = (warmth - 50) * 1.4;
+    const softness = denoise > 55 ? (denoise - 55) / 45 * 0.4 : 0;
+
+    adjustedPreview.style.filter = `brightness(${brightness}) contrast(${contrastBoost}) saturate(${saturation}) sepia(${sepia}) hue-rotate(${hue}deg) blur(${softness}px)`;
+  }
+
+  function loadPreview(file) {
+    if (!file) return;
+    if (uploadDropzonePreview) {
+      const previewUrl = URL.createObjectURL(file);
+      uploadDropzonePreview.src = previewUrl;
+      uploadDropzonePreview.style.display = 'block';
+      if (uploadDropzoneIcon) uploadDropzoneIcon.style.display = 'none';
+      if (uploadDropzoneText) uploadDropzoneText.textContent = 'Image preview';
+      if (uploadDropzoneHint) uploadDropzoneHint.textContent = 'Image selected. Adjust the sliders below, then submit.';
+      uploadDropzonePreview.dataset.previewUrl = previewUrl;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(event) {
+      const url = event.target.result;
+      if (adjustedPlaceholder) adjustedPlaceholder.style.display = 'none';
+      if (adjustedPreview) {
+        adjustedPreview.src = url;
+        adjustedPreview.style.display = 'block';
+      }
+      updatePreviewFilter();
+    };
+    reader.readAsDataURL(file);
+  }
+
+  sliders.forEach(range => {
     range.addEventListener('input', function() {
       const valDisplay = document.getElementById('val_' + this.name);
       if (valDisplay) valDisplay.textContent = this.value;
+      updatePreviewFilter();
     });
   });
+
+  if (manualImageInput) {
+    manualImageInput.addEventListener('change', function() {
+      if (uploadDropzonePreview && uploadDropzonePreview.dataset.previewUrl) {
+        URL.revokeObjectURL(uploadDropzonePreview.dataset.previewUrl);
+        delete uploadDropzonePreview.dataset.previewUrl;
+      }
+      loadPreview(this.files && this.files[0]);
+    });
+  }
 
   // Preset buttons
   document.querySelectorAll('.preset-btn').forEach(btn => {
     btn.addEventListener('click', function() {
       const preset = this.dataset.preset;
       const controls = {
-        portrait: { color: 65, tone: 55, contrast: 50, vibrance: 60, denoise: 40, sharpen: 30, exposure: 55, warmth: 55 },
-        landscape: { color: 50, tone: 70, contrast: 65, vibrance: 70, denoise: 30, sharpen: 60, exposure: 60, warmth: 50 },
-        night: { color: 70, tone: 80, contrast: 60, vibrance: 50, denoise: 70, sharpen: 40, exposure: 75, warmth: 45 },
-        vintage: { color: 40, tone: 50, contrast: 45, vibrance: 30, denoise: 35, sharpen: 45, exposure: 50, warmth: 70 },
-        cinematic: { color: 55, tone: 65, contrast: 70, vibrance: 55, denoise: 35, sharpen: 50, exposure: 52, warmth: 60 }
+        portrait: { color: 65, tone: 55, contrast: 50, vibrance: 60, denoise: 40, sharpen: 30, exposure: 55, warmth: 55, shadows: 58, highlights: 48 },
+        landscape: { color: 50, tone: 70, contrast: 65, vibrance: 70, denoise: 30, sharpen: 60, exposure: 60, warmth: 50, shadows: 45, highlights: 55 },
+        night: { color: 70, tone: 80, contrast: 60, vibrance: 50, denoise: 70, sharpen: 40, exposure: 75, warmth: 45, shadows: 62, highlights: 38 },
+        vintage: { color: 40, tone: 50, contrast: 45, vibrance: 30, denoise: 35, sharpen: 45, exposure: 50, warmth: 70, shadows: 52, highlights: 44 },
+        cinematic: { color: 55, tone: 65, contrast: 70, vibrance: 55, denoise: 35, sharpen: 50, exposure: 52, warmth: 60, shadows: 48, highlights: 58 }
       };
 
       if (controls[preset]) {
         document.querySelectorAll('.control-group input[type="range"]').forEach(range => {
           if (controls[preset][range.name] !== undefined) {
             range.value = controls[preset][range.name];
-            const valDisplay = document.getElementById('val_' + range.name);
-            if (valDisplay) valDisplay.textContent = range.value;
           }
         });
+        updateValues();
+        updatePreviewFilter();
       }
 
       // Highlight active preset
@@ -258,6 +362,8 @@ document.addEventListener('DOMContentLoaded', function() {
       this.style.color = 'var(--text-primary)';
     });
   });
+
+  updateValues();
 });
 </script>
 

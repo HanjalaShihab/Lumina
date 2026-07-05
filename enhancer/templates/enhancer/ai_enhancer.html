@@ -33,11 +33,12 @@
           <input class="form-input" type="text" name="title" placeholder="Optional title">
         </div>
 
-        <label class="dropzone">
+        <label class="dropzone" data-preview-mode="image">
           <span class="icon">🖼️</span>
+          <img class="dropzone-preview" alt="Selected image preview" style="display:none;max-width:100%;max-height:140px;object-fit:cover;border-radius:var(--radius-sm);border:1px solid var(--border-color);margin-bottom:4px;">
           <span class="text">Drop your image here or click to browse</span>
           <span class="hint">JPG, PNG, WebP · up to 20MB · AI will analyze automatically</span>
-          <input type="file" name="original" accept="image/*" required>
+          <input type="file" name="original" accept="image/*" required style="display:none;">
         </label>
 
         <div class="ai-options">
@@ -77,11 +78,11 @@
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
           <div>
             <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">Original</div>
-            <img src="{{ result.original.url }}" style="width:100%;border-radius:var(--radius-sm);border:1px solid var(--border-color);">
+            <img src="{{ result.original.url }}" class="preview-shot" alt="Original preview">
           </div>
           <div>
             <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">Enhanced</div>
-            <img src="{{ result.enhanced.url }}" style="width:100%;border-radius:var(--radius-sm);border:1px solid var(--border-color);">
+            <img src="{{ result.enhanced.url }}" class="preview-shot" alt="Enhanced preview">
           </div>
         </div>
         <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
@@ -98,5 +99,58 @@
     </div>
   </div>
 </div>
+
+<script>
+  (function () {
+    const dropzone = document.querySelector('.dropzone[data-preview-mode="image"]');
+    if (!dropzone) return;
+
+    const input = dropzone.querySelector('input[type="file"]');
+    const icon = dropzone.querySelector('.icon');
+    const text = dropzone.querySelector('.text');
+    const hint = dropzone.querySelector('.hint');
+    const preview = dropzone.querySelector('.dropzone-preview');
+
+    if (!input || !preview) return;
+
+    let previewUrl = null;
+
+    function resetPreview() {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+        previewUrl = null;
+      }
+      preview.removeAttribute('src');
+      preview.style.display = 'none';
+      if (icon) icon.style.display = 'block';
+      if (text) text.textContent = 'Drop your image here or click to browse';
+      if (hint) hint.textContent = 'JPG, PNG, WebP · up to 20MB · AI will analyze automatically';
+    }
+
+    input.addEventListener('change', () => {
+      const file = input.files && input.files[0];
+      if (!file || !file.type.startsWith('image/')) {
+        resetPreview();
+        return;
+      }
+
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+
+      previewUrl = URL.createObjectURL(file);
+      preview.src = previewUrl;
+      preview.style.display = 'block';
+      if (icon) icon.style.display = 'none';
+      if (text) text.textContent = 'Image preview';
+      if (hint) hint.textContent = 'Image selected. Submit to enhance it.';
+    });
+
+    input.addEventListener('click', () => {
+      input.value = '';
+      resetPreview();
+    });
+  })();
+</script>
 
 {% endblock %}

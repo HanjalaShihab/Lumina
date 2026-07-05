@@ -13,22 +13,23 @@ class ImageUploadForm(forms.ModelForm):
         }
 
 
-class ManualEnhancementForm(forms.ModelForm):
-    brightness = forms.FloatField(min_value=0.2, max_value=2.5, initial=1.08)
-    contrast = forms.FloatField(min_value=0.2, max_value=2.5, initial=1.12)
-    sharpness = forms.FloatField(min_value=0.2, max_value=3.0, initial=1.25)
-    saturation = forms.FloatField(min_value=0.0, max_value=2.5, initial=1.08)
-
+class BackgroundRemovalForm(forms.ModelForm):
     class Meta:
         model = EnhancementJob
-        fields = ["title", "original", "brightness", "contrast", "sharpness", "saturation"]
+        fields = ["title", "original"]
         widgets = {
             "title": forms.TextInput(attrs={"placeholder": "Optional image title"}),
             "original": forms.FileInput(attrs={"accept": "image/*"}),
-            "brightness": forms.NumberInput(attrs={"step": "0.01"}),
-            "contrast": forms.NumberInput(attrs={"step": "0.01"}),
-            "sharpness": forms.NumberInput(attrs={"step": "0.01"}),
-            "saturation": forms.NumberInput(attrs={"step": "0.01"}),
+        }
+
+
+class ManualEnhancementForm(forms.ModelForm):
+    class Meta:
+        model = EnhancementJob
+        fields = ["title", "original"]
+        widgets = {
+            "title": forms.TextInput(attrs={"placeholder": "Optional image title"}),
+            "original": forms.FileInput(attrs={"accept": "image/*"}),
         }
 
 

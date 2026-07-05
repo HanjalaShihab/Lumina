@@ -1,3 +1,4 @@
+from io import BytesIO
 from pathlib import Path
 from uuid import uuid4
 
@@ -5,6 +6,12 @@ import cv2
 import numpy as np
 from django.core.files.storage import default_storage
 from PIL import Image, ImageEnhance, ImageFilter, ImageOps
+
+try:
+    from rembg import new_session, remove as rembg_remove
+except Exception:  # pragma: no cover - optional runtime dependency
+    new_session = None
+    rembg_remove = None
 
 from .onnx_sr import OnnxSR, OnnxSRConfig
 
@@ -14,6 +21,8 @@ MODEL_DIR = Path("media/models")
 
 # Lazily created singleton for ONNX super-resolution.
 _ONNX_SR: OnnxSR | None = None
+_REMBG_SESSION = None
+_REMBG_MODEL_NAME: str | None = None
 
 
 def _get_onnx_sr() -> OnnxSR | None:
@@ -45,8 +54,27 @@ def _find_onnx_model() -> Path | None:
     return models[0] if models else None
 
 
+def _get_rembg_session():
+    global _REMBG_SESSION, _REMBG_MODEL_NAME
+    if _REMBG_SESSION is not None:
+        return _REMBG_SESSION
 
-def enhance_image(job, mode="ai"):
+    if rembg_remove is None or new_session is None:
+        return None
+
+    for model_name in ("isnet-general-use", "u2net"):
+        try:
+            _REMBG_SESSION = new_session(model_name)
+            _REMBG_MODEL_NAME = model_name
+            return _REMBG_SESSION
+        except Exception:
+            continue
+
+    return None
+
+
+
+def enhance_image(job, mode="ai", adjustments=None):
     source_path = Path(job.original.path)
     output_name = f"{source_path.stem}-{mode}-{uuid4().hex[:8]}.jpg"
     output_path = Path("uploads/enhanced") / output_name
@@ -56,7 +84,7 @@ def enhance_image(job, mode="ai"):
     with Image.open(source_path) as image:
         image = ImageOps.exif_transpose(image).convert("RGB")
         if mode == "manual":
-            enhanced, metrics = _manual_enhance(image, job)
+            enhanced, metrics = _manual_enhance(image, job, adjustments or {})
         elif mode == "ai":
             enhanced, metrics = _ai_model_enhance(image, job)
         else:
@@ -65,6 +93,24 @@ def enhance_image(job, mode="ai"):
 
     job.enhanced.name = output_path.as_posix()
     job.notes = _describe_enhancement(mode, job, metrics)
+    job.save()
+    return job
+
+
+def remove_background(job):
+    source_path = Path(job.original.path)
+    output_name = f"{source_path.stem}-bgremove-{uuid4().hex[:8]}.png"
+    output_path = Path("uploads/enhanced") / output_name
+    absolute_output = Path(default_storage.path(output_path))
+    absolute_output.parent.mkdir(parents=True, exist_ok=True)
+
+    with Image.open(source_path) as image:
+        image = ImageOps.exif_transpose(image).convert("RGB")
+        cutout, metrics = _background_cutout(image)
+        cutout.save(absolute_output, "PNG", optimize=True)
+
+    job.enhanced.name = output_path.as_posix()
+    job.notes = _describe_background_removal(metrics)
     job.save()
     return job
 
@@ -125,13 +171,47 @@ def _precision_enhance(image):
     return Image.fromarray(_to_uint8(final)), metrics
 
 
-def _manual_enhance(image, job):
-    image = ImageEnhance.Brightness(image).enhance(job.brightness)
-    image = ImageEnhance.Contrast(image).enhance(job.contrast)
-    image = ImageEnhance.Color(image).enhance(job.saturation)
-    image = ImageEnhance.Sharpness(image).enhance(job.sharpness)
-    image = image.filter(ImageFilter.UnsharpMask(radius=1.35, percent=115, threshold=3))
-    return image, _measure(np.asarray(image).astype(np.float32))
+def _manual_enhance(image, job, adjustments):
+    color = _slider_value(adjustments, "color", 50)
+    tone = _slider_value(adjustments, "tone", 50)
+    contrast = _slider_value(adjustments, "contrast", 50)
+    vibrance = _slider_value(adjustments, "vibrance", 50)
+    denoise = _slider_value(adjustments, "denoise", 50)
+    sharpen = _slider_value(adjustments, "sharpen", 50)
+    exposure = _slider_value(adjustments, "exposure", 50)
+    warmth = _slider_value(adjustments, "warmth", 50)
+    shadows = _slider_value(adjustments, "shadows", 50)
+    highlights = _slider_value(adjustments, "highlights", 50)
+
+    rgb = np.asarray(image).astype(np.float32)
+    rgb = _manual_exposure(rgb, exposure)
+    rgb = _manual_warmth(rgb, warmth)
+    rgb = _manual_tone(rgb, tone, shadows, highlights)
+    rgb = _manual_color_balance(rgb, color)
+
+    adjusted = Image.fromarray(_to_uint8(rgb))
+    adjusted = ImageEnhance.Contrast(adjusted).enhance(_slider_factor(contrast, 0.78, 1.42))
+    adjusted = ImageEnhance.Color(adjusted).enhance(_slider_factor(vibrance, 0.72, 1.52))
+
+    if denoise > 55:
+        adjusted = adjusted.filter(ImageFilter.GaussianBlur(radius=(denoise - 55) / 45 * 0.7))
+
+    adjusted = ImageEnhance.Sharpness(adjusted).enhance(_slider_factor(sharpen, 0.75, 1.85))
+    adjusted = adjusted.filter(ImageFilter.UnsharpMask(radius=1.35, percent=115, threshold=3))
+
+    metrics = _measure(np.asarray(adjusted).astype(np.float32))
+    metrics.update({
+        "color": color,
+        "tone": tone,
+        "vibrance": vibrance,
+        "denoise": denoise,
+        "sharpen": sharpen,
+        "exposure": exposure,
+        "warmth": warmth,
+        "shadows": shadows,
+        "highlights": highlights,
+    })
+    return adjusted, metrics
 
 
 def _gray_world_white_balance(rgb):
@@ -212,6 +292,23 @@ def _measure(rgb):
 
 def _describe_enhancement(mode, job, metrics):
     if mode == "manual":
+        if isinstance(metrics, dict) and "color" in metrics:
+            return (
+                "Manual mode used color {color}, tone {tone}, contrast {contrast}, vibrance {vibrance}, "
+                "denoise {denoise}, sharpen {sharpen}, exposure {exposure}, warmth {warmth}, "
+                "shadows {shadows}, and highlights {highlights}."
+            ).format(
+                color=metrics["color"],
+                tone=metrics["tone"],
+                contrast=metrics["contrast"],
+                vibrance=metrics["vibrance"],
+                denoise=metrics["denoise"],
+                sharpen=metrics["sharpen"],
+                exposure=metrics["exposure"],
+                warmth=metrics["warmth"],
+                shadows=metrics["shadows"],
+                highlights=metrics["highlights"],
+            )
         return (
             f"Manual mode used brightness {job.brightness:.2f}, contrast {job.contrast:.2f}, "
             f"sharpness {job.sharpness:.2f}, saturation {job.saturation:.2f}."
@@ -226,8 +323,176 @@ def _describe_enhancement(mode, job, metrics):
     )
 
 
+def _background_cutout(image):
+    rgb = np.asarray(image).astype(np.uint8)
+    rembg_result = _rembg_cutout(image)
+    if rembg_result is not None:
+        return rembg_result
+
+    height, width = rgb.shape[:2]
+    margin_x = max(4, int(width * 0.035))
+    margin_y = max(4, int(height * 0.035))
+    rect_width = max(2, width - (margin_x * 2))
+    rect_height = max(2, height - (margin_y * 2))
+
+    bgr = cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR)
+    mask = np.zeros((height, width), np.uint8)
+    bgd_model = np.zeros((1, 65), np.float64)
+    fgd_model = np.zeros((1, 65), np.float64)
+    method = "grabcut"
+
+    try:
+        cv2.grabCut(
+            bgr,
+            mask,
+            (margin_x, margin_y, rect_width, rect_height),
+            bgd_model,
+            fgd_model,
+            6,
+            cv2.GC_INIT_WITH_RECT,
+        )
+        alpha = np.where(
+            (mask == cv2.GC_FGD) | (mask == cv2.GC_PR_FGD),
+            255,
+            0,
+        ).astype(np.uint8)
+    except cv2.error:
+        method = "border-threshold"
+        border = max(2, min(height, width) // 16)
+        edge_pixels = np.concatenate(
+            [
+                rgb[:border, :, :].reshape(-1, 3),
+                rgb[-border:, :, :].reshape(-1, 3),
+                rgb[:, :border, :].reshape(-1, 3),
+                rgb[:, -border:, :].reshape(-1, 3),
+            ],
+            axis=0,
+        )
+        background_color = np.median(edge_pixels, axis=0)
+        distances = np.linalg.norm(rgb.astype(np.float32) - background_color, axis=2)
+        threshold = np.percentile(distances, 52)
+        alpha = np.where(distances > threshold, 255, 0).astype(np.uint8)
+
+    alpha = _refine_alpha(alpha)
+    foreground_ratio = float((alpha > 127).mean())
+    rgba = np.dstack([rgb, alpha])
+    cutout = Image.fromarray(rgba, "RGBA")
+    return cutout, {"method": method, "foreground_ratio": foreground_ratio}
+
+
+def _rembg_cutout(image):
+    session = _get_rembg_session()
+    if session is None:
+        return None
+
+    try:
+        with BytesIO() as input_buffer:
+            image.save(input_buffer, format="PNG")
+            output = rembg_remove(
+                input_buffer.getvalue(),
+                session=session,
+                alpha_matting=True,
+                alpha_matting_foreground_threshold=240,
+                alpha_matting_background_threshold=12,
+                alpha_matting_erode_size=8,
+                post_process_mask=True,
+                force_return_bytes=True,
+            )
+
+        with Image.open(BytesIO(output)) as cutout_image:
+            cutout_rgba = cutout_image.convert("RGBA")
+
+        rgba = np.asarray(cutout_rgba).astype(np.uint8)
+        alpha = _refine_alpha(rgba[..., 3])
+        rgba[..., 3] = alpha
+        cutout = Image.fromarray(rgba, "RGBA")
+        method = f"rembg:{_REMBG_MODEL_NAME or 'u2net'}"
+        foreground_ratio = float((alpha > 127).mean())
+        return cutout, {"method": method, "foreground_ratio": foreground_ratio}
+    except Exception:
+        return None
+
+
+def _refine_alpha(alpha):
+    alpha = alpha.astype(np.uint8)
+    height, width = alpha.shape[:2]
+    kernel_size = max(3, min(height, width) // 160)
+    if kernel_size % 2 == 0:
+        kernel_size += 1
+    kernel_size = min(kernel_size, 11)
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (kernel_size, kernel_size))
+
+    refined = cv2.morphologyEx(alpha, cv2.MORPH_CLOSE, kernel, iterations=1)
+    refined = cv2.morphologyEx(refined, cv2.MORPH_OPEN, kernel, iterations=1)
+
+    num_labels, labels, stats, _ = cv2.connectedComponentsWithStats((refined > 127).astype(np.uint8), 8)
+    if num_labels > 1:
+                largest_label = 1 + int(np.argmax(stats[1:, cv2.CC_STAT_AREA]))
+                refined = np.where(labels == largest_label, 255, 0).astype(np.uint8)
+
+    return cv2.GaussianBlur(refined, (5, 5), 0)
+
+
+def _describe_background_removal(metrics):
+    method = metrics.get("method", "grabcut")
+    ratio = metrics.get("foreground_ratio", 0.0)
+    return (
+        f"Background removed with {method}. Foreground coverage estimated at {ratio:.0%}. "
+        "The output is saved as a transparent PNG for compositing on any background."
+    )
+
+
 def _luma(rgb):
     return rgb[..., 0] * 0.2126 + rgb[..., 1] * 0.7152 + rgb[..., 2] * 0.0722
+
+
+def _slider_value(adjustments, name, default=50):
+    try:
+        return int(float(adjustments.get(name, default)))
+    except (TypeError, ValueError):
+        return default
+
+
+def _slider_factor(value, minimum, maximum):
+    return minimum + (max(value, 0) / 100.0) * (maximum - minimum)
+
+
+def _manual_exposure(rgb, exposure):
+    factor = _slider_factor(exposure, 0.78, 1.28)
+    return np.clip(rgb * factor, 0, 255)
+
+
+def _manual_warmth(rgb, warmth):
+    factor = (warmth - 50) / 50.0
+    warmed = rgb.copy()
+    warmed[..., 0] = np.clip(warmed[..., 0] * (1.0 + factor * 0.12), 0, 255)
+    warmed[..., 2] = np.clip(warmed[..., 2] * (1.0 - factor * 0.12), 0, 255)
+    return warmed
+
+
+def _manual_tone(rgb, tone, shadows, highlights):
+    luma = _luma(rgb) / 255.0
+    shadow_mask = np.clip((0.56 - luma) / 0.56, 0, 1)[..., None]
+    highlight_mask = np.clip((luma - 0.56) / 0.44, 0, 1)[..., None]
+
+    tone_factor = (tone - 50) / 50.0
+    shadow_lift = max((shadows - 50) / 50.0, 0.0)
+    shadow_deepen = max((50 - shadows) / 50.0, 0.0)
+    highlight_lift = max((highlights - 50) / 50.0, 0.0)
+    highlight_protect = max((50 - highlights) / 50.0, 0.0)
+
+    result = rgb + (255 - rgb) * shadow_mask * (0.28 * shadow_lift + 0.08 * max(tone_factor, 0.0))
+    result = result * (1 - shadow_mask * 0.18 * shadow_deepen)
+    result = result + (255 - result) * highlight_mask * (0.16 * highlight_lift)
+    result = result * (1 - highlight_mask * 0.20 * highlight_protect)
+    return np.clip(result, 0, 255)
+
+
+def _manual_color_balance(rgb, color):
+    balance = (color - 50) / 50.0
+    balanced = rgb.copy()
+    balanced[..., 1] = np.clip(balanced[..., 1] * (1.0 + balance * 0.05), 0, 255)
+    return balanced
 
 
 def _to_uint8(array):
