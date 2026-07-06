@@ -11,7 +11,7 @@
       themeColorMeta.setAttribute("content", theme === "light" ? "#f4f7fb" : "#08080e");
     }
     if (themeToggle) {
-      themeToggle.textContent = theme === "light" ? "Night mode" : "Day mode";
+      themeToggle.textContent = theme === "light" ? "🌙" : "☀️";
     }
   }
 

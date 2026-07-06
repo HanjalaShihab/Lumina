@@ -23,6 +23,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
+  <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}">
+
   <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
 <body>
@@ -60,7 +62,7 @@
       </nav>
 
       <div class="nav-right">
-        <button type="button" class="btn-nav theme-toggle" id="themeToggle" aria-label="Toggle day mode">Day mode</button>
+        <button type="button" class="btn-nav theme-toggle" id="themeToggle" aria-label="Toggle theme" title="Toggle theme">🌓</button>
         <div class="token-display">
           <span class="coin">✦</span>
           <span>{{ available_tokens }}</span>
@@ -135,7 +137,7 @@
           <h4 style="font-size:14px;font-weight:600;margin-bottom:8px;">Support</h4>
           <ul style="list-style:none;padding:0;">
             <li><a href="#" style="color:var(--text-secondary);text-decoration:none;font-size:13px;line-height:2;">Help Center</a></li>
-            <li><a href="#" style="color:var(--text-secondary);text-decoration:none;font-size:13px;line-height:2;">Contact</a></li>
+            <li><a href="{% url 'enhancer:contact' %}" style="color:var(--text-secondary);text-decoration:none;font-size:13px;line-height:2;">Contact</a></li>
             <li><a href="{% url 'enhancer:history' %}" style="color:var(--text-secondary);text-decoration:none;font-size:13px;line-height:2;">History</a></li>
           </ul>
         </div>

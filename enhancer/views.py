@@ -226,7 +226,6 @@ def ai_enhancer(request):
     return render(request, "enhancer/ai_enhancer.html", {"form": form, "result": result})
 
 
-@login_required
 def batch(request):
     """Batch enhancement view (login required — too many tokens for anon)."""
     results = []
@@ -259,7 +258,6 @@ def batch(request):
     return render(request, "enhancer/batch.html", {"form": form, "results": results})
 
 
-@login_required
 def background_remover(request):
     """Background removal view (login required)."""
     result = None
@@ -286,7 +284,6 @@ def background_remover(request):
     return render(request, "enhancer/background_remover.html", {"form": form, "result": result})
 
 
-@login_required
 def history(request):
     """History page with pagination and stats"""
     jobs = EnhancementJob.objects.filter(user=request.user).order_by("-created_at")
@@ -316,7 +313,6 @@ def history(request):
     return render(request, "enhancer/history.html", context)
 
 
-@login_required
 def detail(request, pk):
     """Detail view for a single enhancement"""
     job = get_object_or_404(EnhancementJob, pk=pk, user=request.user)
@@ -332,7 +328,10 @@ def detail(request, pk):
     return render(request, "enhancer/history.html", context)
 
 
-@login_required
+def contact(request):
+    return render(request, "enhancer/contact.html")
+
+
 def delete_enhancement(request, pk):
     """Delete an enhancement via AJAX"""
     if request.method != "POST":
