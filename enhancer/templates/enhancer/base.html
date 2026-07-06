@@ -63,7 +63,7 @@
         <button type="button" class="btn-nav theme-toggle" id="themeToggle" aria-label="Toggle day mode">Day mode</button>
         <div class="token-display">
           <span class="coin">✦</span>
-          <span>{% if user.is_authenticated %}{{ user.profile.tokens|default:50 }}{% else %}50{% endif %}</span>
+          <span>{{ available_tokens }}</span>
         </div>
         {% if user.is_authenticated %}
           <form action="{% url 'logout' %}" method="post" style="display:inline-flex;margin:0;">
