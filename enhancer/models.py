@@ -4,6 +4,7 @@ from django.db import models
 
 class UserCredit(models.Model):
     """Tracks token balance for registered users."""
+
     FREE_TOKENS = 10
 
     user = models.OneToOneField(
@@ -35,6 +36,22 @@ class UserCredit(models.Model):
     def add_tokens(self, amount):
         self.tokens += amount
         self.save(update_fields=["tokens", "updated_at"])
+
+
+class AnonymousCredit(models.Model):
+    """Token balance for anonymous users, persisted by a cookie-backed client_id."""
+
+    client_id = models.CharField(max_length=64, unique=True, db_index=True)
+    tokens = models.PositiveIntegerField(default=UserCredit.FREE_TOKENS)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Anonymous Credit"
+        verbose_name_plural = "Anonymous Credits"
+
+    def __str__(self):
+        return f"anon:{self.client_id} -> {self.tokens} tokens"
 
 
 class EnhancementJob(models.Model):
@@ -73,3 +90,4 @@ class EnhancementJob(models.Model):
 
     def __str__(self):
         return self.title or f"Enhancement #{self.pk}"
+

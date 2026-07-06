@@ -35,11 +35,17 @@
 
         <label class="dropzone" data-preview-mode="image">
           <span class="icon">🖼️</span>
-          <img class="dropzone-preview" alt="Selected image preview" style="display:none;max-width:100%;max-height:140px;object-fit:cover;border-radius:var(--radius-sm);border:1px solid var(--border-color);margin-bottom:4px;">
-          <span class="text">Drop your image here or click to browse</span>
-          <span class="hint">JPG, PNG, WebP · up to 20MB · AI will analyze automatically</span>
-          <input type="file" name="original" accept="image/*" required style="display:none;">
+          <img class="dropzone-preview" alt="Selected image preview" id="aiPreviewImage" style="display:none;max-width:100%;max-height:140px;object-fit:cover;border-radius:var(--radius-sm);border:1px solid var(--border-color);margin-bottom:4px;">
+          <span class="text" id="aiDropText">Drop your image here or click to browse</span>
+          <span class="hint" id="aiDropHint">JPG, PNG, WebP · up to 20MB · AI will analyze automatically</span>
+          <input type="file" name="original" accept="image/*" id="aiOriginalInput" required style="display:none;">
         </label>
+
+        <div style="margin-top:10px;display:flex;justify-content:flex-start;">
+          <button type="button" id="aiRemoveImageBtn" class="btn btn-secondary" style="padding:10px 18px;font-size:13px;display:none;cursor:pointer;">
+            ✖ Remove
+          </button>
+        </div>
 
         <div class="ai-options">
           <label class="option">
@@ -107,9 +113,11 @@
 
     const input = dropzone.querySelector('input[type="file"]');
     const icon = dropzone.querySelector('.icon');
-    const text = dropzone.querySelector('.text');
-    const hint = dropzone.querySelector('.hint');
-    const preview = dropzone.querySelector('.dropzone-preview');
+    const text = document.getElementById('aiDropText');
+    const hint = document.getElementById('aiDropHint');
+    const preview = document.getElementById('aiPreviewImage');
+    const removeBtn = document.getElementById('aiRemoveImageBtn');
+    const originalInput = document.getElementById('aiOriginalInput');
 
     if (!input || !preview) return;
 
@@ -127,10 +135,15 @@
       if (hint) hint.textContent = 'JPG, PNG, WebP · up to 20MB · AI will analyze automatically';
     }
 
+    function setRemoveVisibility(show) {
+      if (removeBtn) removeBtn.style.display = show ? 'inline-flex' : 'none';
+    }
+
     input.addEventListener('change', () => {
       const file = input.files && input.files[0];
       if (!file || !file.type.startsWith('image/')) {
         resetPreview();
+        setRemoveVisibility(false);
         return;
       }
 
@@ -149,7 +162,19 @@
     input.addEventListener('click', () => {
       input.value = '';
       resetPreview();
+      setRemoveVisibility(false);
     });
+
+    if (removeBtn) {
+      removeBtn.addEventListener('click', () => {
+        // Clear selected file without submitting the form
+        originalInput.value = '';
+        // Clear the input referenced by the dropzone
+        input.value = '';
+        resetPreview();
+        setRemoveVisibility(false);
+      });
+    }
   })();
 </script>
 

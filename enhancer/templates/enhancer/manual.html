@@ -27,11 +27,17 @@
 
         <label class="dropzone" data-preview-mode="image" style="margin-bottom:16px;">
           <span class="icon">🖼️</span>
-          <img class="dropzone-preview" alt="Selected image preview" style="display:none;max-width:100%;max-height:140px;object-fit:cover;border-radius:var(--radius-sm);border:1px solid var(--border-color);margin-bottom:4px;">
-          <span class="text">Drop your image here or click to browse</span>
-          <span class="hint">JPG, PNG, WebP · up to 20MB</span>
+          <img class="dropzone-preview" alt="Selected image preview" id="manualPreviewImage" style="display:none;max-width:100%;max-height:140px;object-fit:cover;border-radius:var(--radius-sm);border:1px solid var(--border-color);margin-bottom:4px;">
+          <span class="text" id="manualDropText">Drop your image here or click to browse</span>
+          <span class="hint" id="manualDropHint">JPG, PNG, WebP · up to 20MB</span>
           <input type="file" name="original" id="manualImageInput" accept="image/*" required style="display:none;">
         </label>
+
+        <div style="margin-top:-6px;margin-bottom:16px;display:flex;justify-content:flex-start;">
+          <button type="button" id="manualRemoveImageBtn" class="btn btn-secondary" style="padding:10px 18px;font-size:13px;display:none;cursor:pointer;">
+            ✖ Remove
+          </button>
+        </div>
 
         <!-- Quick Presets -->
         <div style="margin-bottom:16px;">
@@ -247,10 +253,11 @@ document.addEventListener('DOMContentLoaded', function() {
   const adjustedPreview = document.getElementById('manualAdjustedPreview');
   const adjustedPlaceholder = document.getElementById('manualAdjustedPlaceholder');
   const uploadDropzone = document.querySelector('.dropzone[data-preview-mode="image"]');
-  const uploadDropzonePreview = uploadDropzone ? uploadDropzone.querySelector('.dropzone-preview') : null;
+  const uploadDropzonePreview = document.getElementById('manualPreviewImage');
   const uploadDropzoneIcon = uploadDropzone ? uploadDropzone.querySelector('.icon') : null;
-  const uploadDropzoneText = uploadDropzone ? uploadDropzone.querySelector('.text') : null;
-  const uploadDropzoneHint = uploadDropzone ? uploadDropzone.querySelector('.hint') : null;
+  const uploadDropzoneText = document.getElementById('manualDropText');
+  const uploadDropzoneHint = document.getElementById('manualDropHint');
+  const manualRemoveBtn = document.getElementById('manualRemoveImageBtn');
   const sliders = Array.from(document.querySelectorAll('.control-group input[type="range"]'));
 
   function sliderValue(name, fallback = 50) {
@@ -311,6 +318,10 @@ document.addEventListener('DOMContentLoaded', function() {
     reader.readAsDataURL(file);
   }
 
+  function setManualRemoveVisibility(show) {
+    if (manualRemoveBtn) manualRemoveBtn.style.display = show ? 'inline-flex' : 'none';
+  }
+
   sliders.forEach(range => {
     range.addEventListener('input', function() {
       const valDisplay = document.getElementById('val_' + this.name);
@@ -326,6 +337,25 @@ document.addEventListener('DOMContentLoaded', function() {
         delete uploadDropzonePreview.dataset.previewUrl;
       }
       loadPreview(this.files && this.files[0]);
+      setManualRemoveVisibility(true);
+    });
+  }
+
+  if (manualRemoveBtn) {
+    manualRemoveBtn.addEventListener('click', () => {
+      if (uploadDropzonePreview && uploadDropzonePreview.dataset.previewUrl) {
+        URL.revokeObjectURL(uploadDropzonePreview.dataset.previewUrl);
+        delete uploadDropzonePreview.dataset.previewUrl;
+      }
+      manualImageInput.value = '';
+      if (uploadDropzonePreview) {
+        uploadDropzonePreview.style.display = 'none';
+      }
+      const adjustedPlaceholderEl = document.getElementById('manualAdjustedPlaceholder');
+      if (adjustedPlaceholderEl) adjustedPlaceholderEl.style.display = 'flex';
+      const adjustedPreviewEl = document.getElementById('manualAdjustedPreview');
+      if (adjustedPreviewEl) adjustedPreviewEl.style.display = 'none';
+      setManualRemoveVisibility(false);
     });
   }
 

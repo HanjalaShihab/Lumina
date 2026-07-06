@@ -23,7 +23,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
-  <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}">
+  <link rel="icon" href="{% static 'favicon.svg' %}" type="image/svg+xml">
+  <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
 
   <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
@@ -59,6 +60,7 @@
           </div>
         </details>
         <a class="nav-link {% if request.resolver_match.url_name == 'history' %}active{% endif %}" href="{% url 'enhancer:history' %}">History</a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'contact' %}active{% endif %}" href="{% url 'enhancer:contact' %}">Contact</a>
       </nav>
 
       <div class="nav-right">
@@ -130,7 +132,7 @@
           <ul style="list-style:none;padding:0;">
             <li><a href="#" style="color:var(--text-secondary);text-decoration:none;font-size:13px;line-height:2;">Documentation</a></li>
             <li><a href="#" style="color:var(--text-secondary);text-decoration:none;font-size:13px;line-height:2;">API</a></li>
-            <li><a href="#" style="color:var(--text-secondary);text-decoration:none;font-size:13px;line-height:2;">Changelog</a></li>
+       r     <li><a href="#" style="color:var(--text-secondary);text-decoration:none;font-size:13px;line-height:2;">Changelog</a></li>
           </ul>
         </div>
         <div>

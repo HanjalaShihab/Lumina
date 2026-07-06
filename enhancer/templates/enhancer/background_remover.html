@@ -40,11 +40,17 @@
 
         <label class="dropzone" data-preview-mode="image" style="margin-bottom:18px;">
           <span class="icon">🖼️</span>
-          <img class="dropzone-preview" alt="Selected image preview" style="display:none;max-width:100%;max-height:140px;object-fit:cover;border-radius:var(--radius-sm);border:1px solid var(--border-color);margin-bottom:4px;">
-          <span class="text">Drop your image here or click to remove the background</span>
-          <span class="hint">JPG, PNG, WebP · transparent PNG output</span>
-          <input type="file" name="original" accept="image/*" required style="display:none;">
+          <img class="dropzone-preview" alt="Selected image preview" id="bgPreviewImage" style="display:none;max-width:100%;max-height:140px;object-fit:cover;border-radius:var(--radius-sm);border:1px solid var(--border-color);margin-bottom:4px;">
+          <span class="text" id="bgDropText">Drop your image here or click to remove the background</span>
+          <span class="hint" id="bgDropHint">JPG, PNG, WebP · transparent PNG output</span>
+          <input type="file" name="original" accept="image/*" id="bgOriginalInput" required style="display:none;">
         </label>
+
+        <div style="margin-top:10px;display:flex;justify-content:flex-start;">
+          <button type="button" id="bgRemoveImageBtn" class="btn btn-secondary" style="padding:10px 18px;font-size:13px;display:none;cursor:pointer;">
+            ✖ Remove
+          </button>
+        </div>
 
         <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:0 0 22px;">
           <div style="padding:12px 14px;border-radius:var(--radius-sm);border:1px solid var(--border-color);background:var(--bg-input);font-size:13px;color:var(--text-secondary);min-height:48px;display:flex;align-items:center;gap:10px;">
@@ -147,9 +153,11 @@
 
     const input = dropzone.querySelector('input[type="file"]');
     const icon = dropzone.querySelector('.icon');
-    const text = dropzone.querySelector('.text');
-    const hint = dropzone.querySelector('.hint');
-    const preview = dropzone.querySelector('.dropzone-preview');
+    const text = document.getElementById('bgDropText');
+    const hint = document.getElementById('bgDropHint');
+    const preview = document.getElementById('bgPreviewImage');
+    const removeBtn = document.getElementById('bgRemoveImageBtn');
+    const originalInput = document.getElementById('bgOriginalInput');
 
     if (!input || !preview) return;
 
@@ -165,6 +173,7 @@
       if (icon) icon.style.display = 'block';
       if (text) text.textContent = 'Drop your image here or click to remove the background';
       if (hint) hint.textContent = 'JPG, PNG, WebP · transparent PNG output';
+      if (removeBtn) removeBtn.style.display = 'none';
     }
 
     input.addEventListener('change', () => {
@@ -184,12 +193,22 @@
       if (icon) icon.style.display = 'none';
       if (text) text.textContent = 'Image preview';
       if (hint) hint.textContent = 'Image selected. Submit to remove the background.';
+      if (removeBtn) removeBtn.style.display = 'inline-flex';
     });
 
     input.addEventListener('click', () => {
       input.value = '';
       resetPreview();
+      if (removeBtn) removeBtn.style.display = 'none';
     });
+
+    if (removeBtn) {
+      removeBtn.addEventListener('click', () => {
+        input.value = '';
+        resetPreview();
+        removeBtn.style.display = 'none';
+      });
+    }
   })();
 
   (function () {

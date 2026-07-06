@@ -14,14 +14,17 @@
         {% csrf_token %}
         <input type="hidden" name="package" value="10">
         <div class="pricing-card">
-          <div class="tokens">10 <span>tokens</span></div>
+          <div class="tokens">12 <span>tokens</span></div>
           <div class="price">$1 <span>USD</span></div>
+
+
           <ul class="features">
-            <li><span class="check">✓</span> ~3 enhancements</li>
+            <li><span class="check">✓</span> ~4 enhancements</li>
             <li><span class="check">✓</span> History storage</li>
             <li><span class="check">✓</span> Basic support</li>
           </ul>
           <button class="btn-pricing btn-pricing-secondary" type="submit">Buy $1</button>
+
         </div>
       </form>
 
@@ -30,29 +33,35 @@
         <input type="hidden" name="package" value="50">
         <div class="pricing-card popular">
           <div class="badge">Best Value</div>
-          <div class="tokens">50 <span>tokens</span></div>
+          <div class="tokens">100 <span>tokens</span></div>
           <div class="price">$4 <span>USD</span></div>
+
           <ul class="features">
-            <li><span class="check">✓</span> ~16 enhancements</li>
+            <li><span class="check">✓</span> ~33 enhancements</li>
             <li><span class="check">✓</span> Priority support</li>
             <li><span class="check">✓</span> Batch processing</li>
           </ul>
           <button class="btn-pricing btn-pricing-primary" type="submit">Buy $4</button>
+
         </div>
       </form>
 
       <form method="post" action="{% url 'enhancer:upgrade' %}">
         {% csrf_token %}
         <input type="hidden" name="package" value="100">
+
         <div class="pricing-card">
-          <div class="tokens">100 <span>tokens</span></div>
-          <div class="price">$7 <span>USD</span></div>
+          <div class="tokens">250 <span>tokens</span></div>
+
+          <div class="price">$8 <span>USD</span></div>
+
           <ul class="features">
-            <li><span class="check">✓</span> ~33 enhancements</li>
+            <li><span class="check">✓</span> ~83 enhancements</li>
             <li><span class="check">✓</span> Full resolution output</li>
             <li><span class="check">✓</span> API access</li>
           </ul>
-          <button class="btn-pricing btn-pricing-secondary" type="submit">Buy $7</button>
+          <button class="btn-pricing btn-pricing-secondary" type="submit">Buy $8</button>
+
         </div>
       </form>
 
@@ -60,10 +69,11 @@
         {% csrf_token %}
         <input type="hidden" name="package" value="250">
         <div class="pricing-card">
-          <div class="tokens">250 <span>tokens</span></div>
+          <div class="tokens">500 <span>tokens</span></div>
           <div class="price">$15 <span>USD</span></div>
+
           <ul class="features">
-            <li><span class="check">✓</span> ~83 enhancements</li>
+            <li><span class="check">✓</span> ~333 enhancements</li>
             <li><span class="check">✓</span> Full resolution output</li>
             <li><span class="check">✓</span> Priority support</li>
             <li><span class="check">✓</span> Batch processing</li>
@@ -71,6 +81,7 @@
             <li><span class="check">✓</span> Custom models</li>
           </ul>
           <button class="btn-pricing btn-pricing-secondary" type="submit">Buy $15</button>
+
         </div>
       </form>
     </div>

@@ -9,7 +9,8 @@ from django.urls import reverse
 
 from .ai_engine import enhance_image, remove_background
 from .forms import BatchEnhancementForm, BackgroundRemovalForm, ImageUploadForm, ManualEnhancementForm
-from .models import EnhancementJob, UserCredit
+from .models import AnonymousCredit, EnhancementJob, UserCredit
+
 
 import uuid
 
@@ -17,24 +18,49 @@ import uuid
 TOKENS_PER_USAGE = 3      # cost per image enhancement
 FREE_TOKENS = 10          # free tokens for any user
 SESSION_TOKEN_KEY = "lumina_anon_tokens"
+ANON_CLIENT_COOKIE = "lumina_anon_client"
+ANON_CLIENT_COOKIE_MAX_AGE = 3 * 24 * 60 * 60  # ~3 days
+
 
 
 # ── Credit helpers ───────────────────────────────────────────────
 
+def _get_anon_client_id(request):
+    client_id = request.COOKIES.get(ANON_CLIENT_COOKIE)
+    if not client_id:
+        client_id = str(uuid.uuid4())
+        request.new_anon_client_id = client_id
+    return client_id
+
+
+
+
+
 def _session_tokens(request):
-    """Get/set anonymous session token balance (never returns < 0)."""
-    if SESSION_TOKEN_KEY not in request.session:
-        request.session[SESSION_TOKEN_KEY] = FREE_TOKENS
-        request.session.modified = True
-    return max(0, request.session[SESSION_TOKEN_KEY])
+    """Get anonymous token balance.
+
+    Uses persistent AnonymousCredit keyed by cookie client_id.
+    """
+    client_id = _get_anon_client_id(request)
+    credit, _ = AnonymousCredit.objects.get_or_create(client_id=client_id)
+    return max(0, credit.tokens)
+
+
 
 
 def _deduct_session_tokens(request, amount):
-    """Deduct tokens from anonymous session. Returns remaining."""
-    remaining = _session_tokens(request) - amount
-    request.session[SESSION_TOKEN_KEY] = max(0, remaining)
-    request.session.modified = True
-    return remaining
+    """Deduct tokens from persistent AnonymousCredit."""
+    client_id = _get_anon_client_id(request)
+    credit, _ = AnonymousCredit.objects.get_or_create(client_id=client_id)
+    if credit.tokens >= amount:
+        credit.tokens -= amount
+        credit.save(update_fields=["tokens", "updated_at"])
+    else:
+        credit.tokens = 0
+        credit.save(update_fields=["tokens", "updated_at"])
+    return credit.tokens
+
+
 
 
 def get_display_tokens(request):
@@ -47,6 +73,8 @@ def get_display_tokens(request):
         credit = UserCredit.objects.filter(user=request.user).first()
         return credit.tokens if credit else 0
     return _session_tokens(request)
+
+
 
 
 def check_credits(request, cost=TOKENS_PER_USAGE):
@@ -107,6 +135,22 @@ def tokens_context(request):
     return {"available_tokens": get_display_tokens(request)}
 
 
+def _maybe_set_anon_cookie(response, request):
+    """Attach anon client_id cookie for ~3 days so tokens persist."""
+    client_id = getattr(request, "new_anon_client_id", None)
+    if not client_id:
+        return response
+    response.set_cookie(
+        ANON_CLIENT_COOKIE,
+        client_id,
+        max_age=ANON_CLIENT_COOKIE_MAX_AGE,
+        httponly=False,
+        samesite="Lax",
+    )
+    return response
+
+
+
 # ── Views ────────────────────────────────────────────────────────
 
 
@@ -115,12 +159,15 @@ def upgrade(request):
     purchase_amount = None
     if request.method == "POST":
         package = request.POST.get("package")
-        mapping = {"10": 10, "50": 50, "100": 100, "250": 250}
+        # package value is the UI token amount; keep mapping as-is.
+        mapping = {"10": 12, "50": 100, "100": 250, "250": 500}
+
         amount = mapping.get(package, 10)
 
         if request.user.is_authenticated:
             credit, _ = UserCredit.objects.get_or_create(user=request.user)
             credit.add_tokens(amount)
+
             messages.success(request, f"{amount} tokens added to your account!")
         else:
             signup_url = reverse("enhancer:signup")
@@ -227,7 +274,7 @@ def ai_enhancer(request):
 
 
 def batch(request):
-    """Batch enhancement view (login required — too many tokens for anon)."""
+    """Batch enhancement view."""
     results = []
 
     if request.method == "POST":
@@ -236,7 +283,6 @@ def batch(request):
             files = request.FILES.getlist("images")
             cost = len(files) * TOKENS_PER_USAGE
 
-            # ── Credit check ──
             if not check_credits(request, cost):
                 return redirect("enhancer:batch")
 
@@ -249,23 +295,29 @@ def batch(request):
                 )
                 results.append(enhance_image(job, mode="ai"))
 
-            # ── Deduct credits ──
             deduct_credits(request, cost)
             messages.success(request, f"Enhanced {len(results)} image(s).")
     else:
         form = BatchEnhancementForm()
 
-    return render(request, "enhancer/batch.html", {"form": form, "results": results})
+    response = render(
+        request,
+        "enhancer/batch.html",
+        {"form": form, "results": results},
+    )
+    return _maybe_set_anon_cookie(response, request)
+
+
+
 
 
 def background_remover(request):
-    """Background removal view (login required)."""
+    """Background removal view."""
     result = None
 
     if request.method == "POST":
         form = BackgroundRemovalForm(request.POST, request.FILES)
         if form.is_valid():
-            # ── Credit check ──
             if not check_credits(request):
                 return redirect("enhancer:background_remover")
 
@@ -275,18 +327,36 @@ def background_remover(request):
             job.save()
             result = remove_background(job)
 
-            # ── Deduct credits ──
             deduct_credits(request)
             messages.success(request, "Background removal complete.")
     else:
         form = BackgroundRemovalForm()
 
-    return render(request, "enhancer/background_remover.html", {"form": form, "result": result})
+    response = render(
+        request,
+        "enhancer/background_remover.html",
+        {"form": form, "result": result},
+    )
+    return _maybe_set_anon_cookie(response, request)
+
+
 
 
 def history(request):
-    """History page with pagination and stats"""
+    """History page (login required)."""
+    if not request.user.is_authenticated:
+        # Render as a green info message when user is not logged in
+        messages.add_message(
+            request,
+            messages.INFO,
+            "Please sign up or log in to view your history.",
+            extra_tags="locked-history",
+        )
+        return redirect("enhancer:ai_enhancer")
+
     jobs = EnhancementJob.objects.filter(user=request.user).order_by("-created_at")
+
+
 
     ai_count = jobs.filter(mode=EnhancementJob.MODE_AI).count()
     manual_count = jobs.filter(mode=EnhancementJob.MODE_MANUAL).count()
@@ -329,7 +399,46 @@ def detail(request, pk):
 
 
 def contact(request):
+    from django.conf import settings
+    from django.core.mail import send_mail
+
+    CONTACT_TO_EMAIL = "hanjalashihab1@gmail.com"
+
+    if request.method == "POST":
+        name = request.POST.get("name", "").strip()
+        email = request.POST.get("email", "").strip()
+        message = request.POST.get("message", "").strip()
+
+        if not message:
+            messages.error(request, "Please write a message before sending.")
+            return render(request, "enhancer/contact.html")
+
+        # Best-effort email sending (won't crash the page if email isn't configured).
+        subject = f"Lumina Contact Form - {name or 'Anonymous'}"
+        body = (
+            f"Name: {name or 'Anonymous'}\n"
+            f"Email: {email or '(not provided)'}\n\n"
+            f"Message:\n{message}\n"
+        )
+
+        try:
+            send_mail(
+                subject=subject,
+                message=body,
+                from_email=getattr(settings, "DEFAULT_FROM_EMAIL", "no-reply@lumina.local"),
+                recipient_list=[CONTACT_TO_EMAIL],
+                fail_silently=False,
+            )
+        except Exception:
+            # If SMTP isn't configured, still accept the message.
+            pass
+
+        messages.success(request, "Message received. We will contact you soon.")
+        return redirect("enhancer:contact")
+
     return render(request, "enhancer/contact.html")
+
+
 
 
 def delete_enhancement(request, pk):

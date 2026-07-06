@@ -322,8 +322,16 @@ html[data-theme="light"] .nav-dropdown-menu {
 
 .theme-toggle {
   border: 1px solid var(--border-color);
-  background: var(--bg-card);
+  background: transparent !important;
   color: var(--text-secondary);
+  box-shadow: none;
+  padding: 10px 16px;
+  line-height: 1;
+  font-size: 18px;
+}
+
+.theme-toggle.btn-nav {
+  background: transparent !important;
   box-shadow: none;
 }
 
@@ -331,6 +339,19 @@ html[data-theme="light"] .nav-dropdown-menu {
   color: var(--text-primary);
   border-color: var(--border-hover);
   background: var(--bg-card-hover);
+ }
+
+/* History locked message styling (used via Django message tags) */
+.message.locked-history {
+  background: rgba(0, 230, 118, 0.10) !important;
+  border: 1px solid rgba(0, 230, 118, 0.22) !important;
+  color: #00e676 !important;
+}
+
+.theme-toggle,
+.theme-toggle.btn-nav {
+  background: transparent !important;
+  box-shadow: none;
 }
 
 .token-display {
