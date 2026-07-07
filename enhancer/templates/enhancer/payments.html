@@ -1,0 +1,88 @@
+{% extends "enhancer/base.html" %}
+{% block title %}Lumina — Payments{% endblock %}
+{% block content %}
+<section class="section">
+  <div class="section-header">
+    <div class="eyebrow">Payments</div>
+    <h2 class="title">Buy enhancement tokens</h2>
+    <p class="subtitle">Choose a package. For now, purchases are processed as a demo (tokens are added directly).</p>
+  </div>
+
+  <div style="max-width:900px;margin:0 auto;">
+    <div class="pricing-grid">
+      <form method="post" action="{% url 'enhancer:payments' %}">
+        {% csrf_token %}
+
+        <input type="hidden" name="package" value="10">
+        <div class="pricing-card">
+          <div class="tokens">12 <span>tokens</span></div>
+          <div class="price">$1 <span>USD</span></div>
+          <ul class="features">
+            <li><span class="check">✓</span> ~4 enhancements</li>
+            <li><span class="check">✓</span> History storage</li>
+            <li><span class="check">✓</span> Basic support</li>
+          </ul>
+          <button class="btn-pricing btn-pricing-secondary" name="action" value="buy" type="submit">Buy $1</button>
+        </div>
+      </form>
+
+      <form method="post" action="{% url 'enhancer:payments' %}">
+        {% csrf_token %}
+        <input type="hidden" name="package" value="50">
+        <div class="pricing-card popular">
+          <div class="badge">Best Value</div>
+          <div class="tokens">100 <span>tokens</span></div>
+          <div class="price">$4 <span>USD</span></div>
+          <ul class="features">
+            <li><span class="check">✓</span> ~33 enhancements</li>
+            <li><span class="check">✓</span> Priority support</li>
+            <li><span class="check">✓</span> Batch processing</li>
+          </ul>
+          <button class="btn-pricing btn-pricing-primary" name="action" value="buy" type="submit">Buy $4</button>
+        </div>
+      </form>
+
+      <form method="post" action="{% url 'enhancer:payments' %}">
+        {% csrf_token %}
+        <input type="hidden" name="package" value="100">
+        <div class="pricing-card">
+          <div class="tokens">250 <span>tokens</span></div>
+          <div class="price">$8 <span>USD</span></div>
+          <ul class="features">
+            <li><span class="check">✓</span> ~83 enhancements</li>
+            <li><span class="check">✓</span> Full resolution output</li>
+            <li><span class="check">✓</span> API access</li>
+          </ul>
+          <button class="btn-pricing btn-pricing-secondary" name="action" value="buy" type="submit">Buy $8</button>
+        </div>
+      </form>
+
+      <form method="post" action="{% url 'enhancer:payments' %}">
+        {% csrf_token %}
+        <input type="hidden" name="package" value="250">
+        <div class="pricing-card">
+          <div class="tokens">500 <span>tokens</span></div>
+          <div class="price">$15 <span>USD</span></div>
+          <ul class="features">
+            <li><span class="check">✓</span> ~333 enhancements</li>
+            <li><span class="check">✓</span> Full resolution output</li>
+            <li><span class="check">✓</span> Priority support</li>
+            <li><span class="check">✓</span> Batch processing</li>
+            <li><span class="check">✓</span> API access</li>
+          </ul>
+          <button class="btn-pricing btn-pricing-secondary" name="action" value="buy" type="submit">Buy $15</button>
+        </div>
+      </form>
+    </div>
+
+    <div style="margin-top:16px;padding:12px 16px;border-radius:var(--radius-sm);background:rgba(108,92,231,0.06);border:1px solid rgba(108,92,231,0.15);font-size:13px;color:var(--text-secondary);">
+      ⚠️ Real payment providers (Bkash / Rocket) are not integrated yet. This page currently credits tokens directly for testing.
+    </div>
+
+    <div style="margin-top:10px;font-size:12px;color:var(--text-muted);">
+      When ready, this page will create a payment request and redirect to the provider.
+    </div>
+  </div>
+</section>
+{% endblock %}
+

@@ -1,0 +1,23 @@
+i{% extends "enhancer/base.html" %}
+{% block title %}Lumina — Processing{% endblock %}
+{% block content %}
+<section class="section">
+  <div class="section-header">
+    <div class="eyebrow">Payment</div>
+    <h2 class="title">Redirecting to payment provider…</h2>
+    <p class="subtitle">This is a placeholder page. In the next step, we’ll integrate Bkash and Rocket here.</p>
+  </div>
+
+  <div style="max-width:600px;margin:0 auto;">
+    <div style="padding:18px 20px;border-radius:var(--radius-lg);background:var(--bg-card);border:1px solid var(--border-color);text-align:center;">
+      <div style="font-size:48px;opacity:0.6;margin-bottom:10px;">⏳</div>
+      <div style="font-size:16px;font-weight:600;color:var(--text-primary);margin-bottom:8px;">Please wait</div>
+      <div style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">
+        After integration, users will be redirected to Bkash/Rocket checkout and your system will credit tokens via webhook.
+      </div>
+      <a href="{% url 'enhancer:payments' %}" class="btn btn-secondary" style="text-decoration:none;">Back to packages</a>
+    </div>
+  </div>
+</section>
+{% endblock %}
+

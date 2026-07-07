@@ -78,6 +78,7 @@ def get_display_tokens(request):
 
 
 def check_credits(request, cost=TOKENS_PER_USAGE):
+
     """
     Check if the user can afford *cost* tokens.
     Admin/staff users have unlimited access (no token check).
@@ -152,33 +153,38 @@ def _maybe_set_anon_cookie(response, request):
 # ── Views ────────────────────────────────────────────────────────
 
 
-def upgrade(request):
-    """Token purchase page."""
-    purchase_amount = None
+def payments(request):
+    """Token purchase page (payment gateway page to be wired later)."""
     if request.method == "POST":
-        package = request.POST.get("package")
-        # package value is the UI token amount; keep mapping as-is.
-        mapping = {"10": 12, "50": 100, "100": 250, "250": 500}
 
-        amount = mapping.get(package, 10)
-
-        if request.user.is_authenticated:
-            credit, _ = UserCredit.objects.get_or_create(user=request.user)
-            credit.add_tokens(amount)
-
-            messages.success(request, f"{amount} tokens added to your account!")
-        else:
-            signup_url = reverse("enhancer:signup")
-            messages.info(
-                request,
-                f"<a href='{signup_url}' "
-                f"style='color:var(--text-accent);text-decoration:underline;'>Sign up</a> "
-                f"first to purchase tokens.",
-            )
+        if not request.user.is_authenticated:
             return redirect("enhancer:signup")
-        return redirect("enhancer:home")
 
-    return render(request, "enhancer/upgrade.html")
+        # Payment is not wired yet. Instead of adding free tokens,
+        # redirect user to the payment processing page.
+        package = request.POST.get("package")
+        return redirect("enhancer:payment_processing")
+
+
+
+    return render(request, "enhancer/payments.html")
+
+
+def upgrade(request):
+    """Backward-compatible alias for the old upgrade route."""
+    return payments(request)
+
+
+def payment_processing(request):
+    """Placeholder page for future payment provider integration."""
+    if not request.user.is_authenticated:
+        # Non-registered users should authenticate first.
+        return redirect("enhancer:login")
+    return render(request, "enhancer/payment_processing.html")
+
+
+
+
 
 
 def home(request):

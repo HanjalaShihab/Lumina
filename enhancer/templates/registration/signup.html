@@ -9,19 +9,22 @@
     <p style="color:var(--text-secondary);font-size:14px;">Start enhancing your images with AI precision</p>
   </div>
 
-  {% if form.errors %}
+  {% if form.non_field_errors %}
     <div style="padding:12px 16px;border-radius:var(--radius-sm);background:rgba(253,121,168,0.08);border:1px solid rgba(253,121,168,0.15);color:#fd79a8;margin-bottom:16px;font-size:14px;">
-      Please correct the errors below.
+      {{ form.non_field_errors }}
     </div>
   {% endif %}
 
   <form method="post">
     {% csrf_token %}
-    
+
     <div class="form-group">
       <label class="form-label">Username</label>
       <input class="form-input" type="text" name="username" placeholder="Choose a username" required>
       <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Letters, numbers, and underscores only</div>
+      {% if form.errors.username %}
+        <div style="font-size:12px;color:#fd79a8;margin-top:6px;">{{ form.errors.username }}</div>
+      {% endif %}
     </div>
 
     <div class="form-group">
@@ -33,12 +36,19 @@
       <label class="form-label">Password</label>
       <input class="form-input" type="password" name="password1" placeholder="Create a password" required>
       <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Minimum 8 characters</div>
+      {% if form.errors.password1 %}
+        <div style="font-size:12px;color:#fd79a8;margin-top:6px;">{{ form.errors.password1 }}</div>
+      {% endif %}
     </div>
 
     <div class="form-group">
       <label class="form-label">Confirm Password</label>
       <input class="form-input" type="password" name="password2" placeholder="Confirm your password" required>
+      {% if form.errors.password2 %}
+        <div style="font-size:12px;color:#fd79a8;margin-top:6px;">{{ form.errors.password2 }}</div>
+      {% endif %}
     </div>
+
 
     <button type="submit" class="btn btn-primary btn-block">
       ✦ Create Account

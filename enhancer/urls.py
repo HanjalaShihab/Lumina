@@ -10,12 +10,15 @@ urlpatterns = [
     path("manual/", views.manual, name="manual"),
     path("ai/", views.ai_enhancer, name="ai_enhancer"),
     path("batch/", views.batch, name="batch"),
-    path("background/", views.background_remover, name="background_remover"),
     path("history/", views.history, name="history"),
     path("history/<int:pk>/", views.detail, name="detail"),
     path("upgrade/", views.upgrade, name="upgrade"),
-    path("delete/<int:pk>/", views.delete_enhancement, name="delete_enhancement"),
-    
+    path("payments/", views.payments, name="payments"),
+    path("payments/processing/", views.payment_processing, name="payment_processing"),
+
+
+    path("background/", views.background_remover, name="background_remover"),
+
     # Authentication - Using registration folder
     path("signup/", views.signup, name="signup"),
     path("login/", auth_views.LoginView.as_view(

@@ -145,9 +145,9 @@
         <li><span class="check">✓</span> History storage</li>
         <li><span class="check">✓</span> Basic support</li>
       </ul>
-      <button class="btn-pricing btn-pricing-secondary">Buy tokens</button>
+      <a class="btn-pricing btn-pricing-secondary" href="{% url 'enhancer:payment_processing' %}?package=10">Buy tokens</a>
     </div>
-    
+
     <div class="pricing-card popular">
       <div class="badge">Best Value</div>
       <div class="tokens">100 <span>tokens</span></div>
@@ -159,26 +159,12 @@
         <li><span class="check">✓</span> Priority support</li>
         <li><span class="check">✓</span> Batch processing</li>
       </ul>
-      <button class="btn-pricing btn-pricing-primary">Buy tokens</button>
+      <a class="btn-pricing btn-pricing-primary" href="{% url 'enhancer:payment_processing' %}?package=50">Buy tokens</a>
     </div>
-    
+
     <div class="pricing-card">
       <div class="tokens">250 <span>tokens</span></div>
       <div class="price">$8 <span>USD</span></div>
-      <ul class="features">
-        <li><span class="check">✓</span> 33 AI enhancements</li>
-        <li><span class="check">✓</span> Full resolution output</li>
-        <li><span class="check">✓</span> History storage</li>
-        <li><span class="check">✓</span> Priority support</li>
-        <li><span class="check">✓</span> Batch processing</li>
-        <li><span class="check">✓</span> API access</li>
-      </ul>
-      <button class="btn-pricing btn-pricing-secondary">Buy tokens</button>
-    </div>
-    
-    <div class="pricing-card">
-      <div class="tokens">500 <span>tokens</span></div>
-      <div class="price">$15 <span>USD</span></div>
       <ul class="features">
         <li><span class="check">✓</span> 83 AI enhancements</li>
         <li><span class="check">✓</span> Full resolution output</li>
@@ -186,9 +172,23 @@
         <li><span class="check">✓</span> Priority support</li>
         <li><span class="check">✓</span> Batch processing</li>
         <li><span class="check">✓</span> API access</li>
+      </ul>
+      <a class="btn-pricing btn-pricing-secondary" href="{% url 'enhancer:payment_processing' %}?package=100">Buy tokens</a>
+    </div>
+
+    <div class="pricing-card">
+      <div class="tokens">500 <span>tokens</span></div>
+      <div class="price">$15 <span>USD</span></div>
+      <ul class="features">
+        <li><span class="check">✓</span> 333 AI enhancements</li>
+        <li><span class="check">✓</span> Full resolution output</li>
+        <li><span class="check">✓</span> History storage</li>
+        <li><span class="check">✓</span> Priority support</li>
+        <li><span class="check">✓</span> Batch processing</li>
+        <li><span class="check">✓</span> API access</li>
         <li><span class="check">✓</span> Custom models</li>
       </ul>
-      <button class="btn-pricing btn-pricing-secondary">Buy tokens</button>
+      <a class="btn-pricing btn-pricing-secondary" href="{% url 'enhancer:payment_processing' %}?package=250">Buy tokens</a>
     </div>
   </div>
 </section>
