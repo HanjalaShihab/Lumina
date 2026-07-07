@@ -107,10 +107,8 @@ def check_credits(request, cost=TOKENS_PER_USAGE):
             signup_url = reverse("enhancer:signup")
             messages.info(
                 request,
-                f"You've used your {FREE_TOKENS} free tokens. "
-                f"<a href='{signup_url}' "
-                f"style='color:var(--text-accent);text-decoration:underline;'>Sign up</a> "
-                f"for more credits.",
+                "You are out of credits right now. "
+                "You have to purchase more credits to continue.",
             )
             return False
         return True
@@ -322,7 +320,10 @@ def background_remover(request):
                 return redirect("enhancer:background_remover")
 
             job = form.save(commit=False)
-            job.user = request.user
+            # For anonymous users, request.user is an AnonymousUser (a SimpleLazyObject)
+            # which is not assignable to a FK expecting a real User instance.
+            if request.user.is_authenticated:
+                job.user = request.user
             job.mode = EnhancementJob.MODE_BACKGROUND
             job.save()
             result = remove_background(job)
